@@ -6,9 +6,38 @@ import Image from "next/image"
 import { Menu, User, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useAuth } from "@/components/providers/auth-provider"
+import { useEffect } from "react"
+import { supabase } from "@/lib/supabase"
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
+  const { user, signOut } = useAuth()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      if (!user) {
+        if (mounted) setIsAdmin(false)
+        return
+      }
+
+      const meta = (user as any).user_metadata ?? {}
+      if (meta.is_admin || meta.isAdmin || meta.role === 'admin') {
+        if (mounted) setIsAdmin(true)
+        return
+      }
+
+      try {
+        const { data } = await supabase.from('members').select('is_admin').eq('id', user.id).maybeSingle()
+        if (mounted) setIsAdmin(Boolean(data?.is_admin))
+      } catch (e) {
+        if (mounted) setIsAdmin(false)
+      }
+    })()
+    return () => { mounted = false }
+  }, [user])
 
   const scrollToSection = (id: string) => {
     setIsOpen(false)
@@ -50,24 +79,34 @@ export function Navigation() {
               <User className="w-4 h-4" />
               Mi Panel
             </Link>
-            <Link 
-              href="/admin"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
-            >
-              <Shield className="w-4 h-4" />
-              Admin
-            </Link>
+            {isAdmin && (
+              <Link 
+                href="/admin"
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+              >
+                <Shield className="w-4 h-4" />
+                Admin
+              </Link>
+            )}
           </nav>
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Link 
-              href="/inscription"
-            >
+            <Link href="/inscription"> 
               <Button className="bg-accent hover:bg-accent/90 text-white font-bold">
                 Inscribirme
               </Button>
             </Link>
+
+            {user ? (
+              <Button variant="ghost" onClick={async () => await signOut()}>
+                Cerrar sesión
+              </Button>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline">Entrar</Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu */}
@@ -121,14 +160,28 @@ export function Navigation() {
                     <User className="w-5 h-5 text-primary" />
                     Mi Panel de Socio
                   </Link>
-                  <Link 
-                    href="/admin"
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 text-foreground transition-colors"
-                  >
-                    <Shield className="w-5 h-5 text-accent" />
-                    Panel Administrador
-                  </Link>
+                  {isAdmin && (
+                    <Link 
+                      href="/admin"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 text-foreground transition-colors"
+                    >
+                      <Shield className="w-5 h-5 text-accent" />
+                      Panel Administrador
+                    </Link>
+                  )}
+                  {user ? (
+                    <button
+                      onClick={async () => { setIsOpen(false); await signOut() }}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 text-foreground transition-colors text-left"
+                    >
+                      Cerrar sesión
+                    </button>
+                  ) : (
+                    <Link href="/login" onClick={() => setIsOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 text-foreground transition-colors">
+                      Entrar
+                    </Link>
+                  )}
                 </nav>
               </div>
             </SheetContent>

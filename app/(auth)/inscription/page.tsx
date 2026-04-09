@@ -1,6 +1,6 @@
-import { RegistrationForm } from "@/components/registration-form"
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
+import { RegistrationForm } from "@/components/auth/registration-form"
+import { Navigation } from "@/components/layout/navigation"
+import { Footer } from "@/components/layout/footer"
 
 export default function InscriptionPage() {
   return (

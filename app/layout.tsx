@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, Cinzel, Playfair_Display } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+import AuthProvider from '@/components/providers/auth-provider'
+import { Toaster } from '@/components/ui/toaster'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -48,7 +50,10 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <body className={`${inter.variable} ${cinzel.variable} ${playfair.variable} font-sans antialiased bg-[#050A18] text-white`}>
-        {children}
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

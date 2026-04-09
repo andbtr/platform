@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { User, Lock } from "lucide-react"
+import { useToast } from '@/hooks/use-toast'
 
 export default function LoginForm() {
   const [email, setEmail] = useState("")
@@ -19,30 +20,55 @@ export default function LoginForm() {
     setError(null)
     setInfo(null)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const finalEmail = email.includes('@') ? email : `${email}@huajsapata.com`
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: finalEmail,
+        password,
+      })
 
-    setLoading(false)
+      setLoading(false)
 
-    if (error) {
-      setError(error.message)
-      return
+      if (error) {
+        setError(error.message)
+        toast({ title: 'Error', description: error.message, variant: 'destructive' })
+        return
+      }
+
+      toast({ title: '¡Bienvenido!', description: 'Has iniciado sesión correctamente.' })
+      router.push('/dashboard')
+    } catch (err: any) {
+      setLoading(false)
+      const message = err?.message ?? 'Error desconocido'
+      setError(message)
+      toast({ title: 'Error', description: String(message), variant: 'destructive' })
     }
-
-    router.push('/dashboard')
   }
 
   const handleReset = async () => {
-    if (!email) return setError('Ingresa tu correo para enviar el enlace')
+    if (!email) return setError('Ingresa tu usuario o correo para enviar el enlace')
     setLoading(true)
     setError(null)
-    const { error } = await supabase.auth.resetPasswordForEmail(email)
-    setLoading(false)
-    if (error) return setError(error.message)
-    setInfo('Se envió el correo de restablecimiento si la cuenta existe')
+    try {
+      const finalEmail = email.includes('@') ? email : `${email}@huajsapata.com`
+      const { data, error } = await supabase.auth.resetPasswordForEmail(finalEmail)
+      setLoading(false)
+      if (error) {
+        setError(error.message)
+        toast({ title: 'Error', description: error.message, variant: 'destructive' })
+        return
+      }
+      setInfo('Se envió el correo de restablecimiento si la cuenta existe')
+      toast({ title: 'Correo enviado', description: 'Revisa tu bandeja para restablecer la contraseña.' })
+    } catch (err: any) {
+      setLoading(false)
+      const message = err?.message ?? 'Error desconocido'
+      setError(message)
+      toast({ title: 'Error', description: String(message), variant: 'destructive' })
+    }
   }
+
+  const { toast } = useToast()
 
   return (
     <div className="glass-strong rounded-3xl p-6 md:p-8 border-gold-glow max-w-md mx-auto">
@@ -58,14 +84,14 @@ export default function LoginForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-[#C5A059] text-sm mb-2 font-medium">Correo</label>
+          <label className="block text-[#C5A059] text-sm mb-2 font-medium">Usuario o correo</label>
           <input
-            type="email"
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all"
-            placeholder="tu@email.com"
+            placeholder="usuario (sin @) o correo completo"
           />
         </div>
 
