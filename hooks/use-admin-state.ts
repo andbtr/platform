@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useAuth } from '@/components/providers/auth-provider'
+import { useSupabaseConfig } from "@/components/providers/supabase-provider"
 
 type UseAdminStateProps = {
   initialPayments: any[]
@@ -8,6 +9,7 @@ type UseAdminStateProps = {
 
 export function useAdminState({ initialPayments, initialTotalCount }: UseAdminStateProps) {
   const { accessToken } = useAuth()
+  const { supabaseUrl, supabaseAnonKey } = useSupabaseConfig()
   
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedBloque, setSelectedBloque] = useState<string>("todos")
@@ -29,9 +31,8 @@ export function useAdminState({ initialPayments, initialTotalCount }: UseAdminSt
       const token = accessToken
       const headers: Record<string,string> = {}
       if (token) headers['Authorization'] = `Bearer ${token}`
-      headers['apikey'] = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+      headers['apikey'] = supabaseAnonKey
 
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       if (!supabaseUrl) throw new Error('Server misconfigured')
       
       const p = opts.pageNum ?? page

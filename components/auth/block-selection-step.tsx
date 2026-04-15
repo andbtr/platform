@@ -34,8 +34,14 @@ export function BlockSelectionStep({
           <h3 className="font-[family-name:var(--font-cinzel)] text-xl font-bold text-white">
             Elige tu Bloque
           </h3>
-          <p className="text-white/60 text-sm">Paso 2 de 3</p>
+          <p className="text-white/60 text-sm">Paso 2 de 2</p>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-[#C5A059]/20 bg-[#081429]/70 p-5 md:p-6">
+        <p className="text-white/75 leading-relaxed">
+          Selecciona el bloque donde deseas inscribirte. Esta elección nos ayuda a ubicarte dentro de la estructura del conjunto con orden y respeto por la tradición.
+        </p>
       </div>
 
       {loadingBloques && (
@@ -59,20 +65,22 @@ export function BlockSelectionStep({
               type="button"
               onClick={() => setFormData({ ...formData, bloque: String(bloque.id) })}
               className={cn(
-                "p-4 md:p-6 rounded-2xl text-left transition-all duration-300 border",
+                "group p-4 md:p-6 rounded-2xl text-left transition-all duration-300 border",
                 formData.bloque === String(bloque.id)
-                  ? "bg-gradient-to-br from-[#4FB8C4]/30 to-[#0F2167]/50 border-[#C5A059] shadow-lg shadow-[#4FB8C4]/20"
-                  : "glass border-white/10 hover:border-[#4FB8C4]/50"
+                  ? "bg-gradient-to-br from-[#4FB8C4]/20 via-[#0F2167]/50 to-[#050A18] border-[#C5A059] shadow-lg shadow-[#4FB8C4]/20"
+                  : "glass border-white/10 hover:border-[#4FB8C4]/50 hover:bg-white/10"
               )}
             >
-              <span className="text-3xl mb-2 block">
+              <span className="text-3xl mb-2 block transition-transform group-hover:scale-110">
                 {iconMap[String(bloque.name).toLowerCase().split(" ")[0]] || "🎭"}
               </span>
               <h4 className="font-bold text-white text-lg">{bloque.name}</h4>
               <p className="text-white/60 text-sm">
                 {descriptionMap[String(bloque.name).toLowerCase().split(" ")[0]] || "Tradición y danza"}
               </p>
-              <p className="text-[#C5A059] font-bold mt-2">S/ {bloque.total_price}</p>
+              <p className="mt-3 inline-flex rounded-full border border-[#C5A059]/25 bg-[#C5A059]/10 px-3 py-1 text-xs font-semibold text-[#E9C57B]">
+                Bloque de inscripción
+              </p>
             </button>
           ))}
         </div>
@@ -84,32 +92,13 @@ export function BlockSelectionStep({
 
       {errors.bloque && <p className="text-red-400 text-sm text-center">{errors.bloque}</p>}
 
-      {formData.bloque && !loadingBloques && (
+      {formData.bloque && !loadingBloques && selectedBloque && (
         <div className="mt-8 p-6 rounded-2xl glass border border-[#C5A059]/30">
-          <h4 className="text-[#C5A059] font-semibold mb-4">Número de Cuotas</h4>
-          <div className="flex items-center gap-4 mb-4">
-            {[8, 9, 10].map((num) => (
-              <button
-                key={num}
-                type="button"
-                onClick={() => setFormData({ ...formData, cuotas: num })}
-                className={cn(
-                  "flex-1 py-3 rounded-xl font-bold transition-all duration-300",
-                  formData.cuotas === num
-                    ? "bg-gradient-to-r from-[#4FB8C4] to-[#1E6B7E] text-white"
-                    : "bg-white/5 text-white/60 hover:text-white"
-                )}
-              >
-                {num} cuotas
-              </button>
-            ))}
-          </div>
-          <div className="text-center p-4 rounded-xl bg-[#0F2167]/50">
-            <p className="text-white/60 text-sm">Monto mensual</p>
-            <p className="text-3xl font-bold text-gold-gradient font-[family-name:var(--font-cinzel)]">
-              S/ {selectedBloque ? Math.ceil(selectedBloque.total_price / formData.cuotas) : 0}
-            </p>
-          </div>
+          <p className="text-[#C5A059] text-sm uppercase tracking-[0.25em] mb-3">Bloque seleccionado</p>
+          <h4 className="text-white font-semibold text-xl mb-2">{selectedBloque.name}</h4>
+          <p className="text-white/70 text-sm leading-relaxed">
+            Tu inscripción continuará asociada a este bloque. Nuestro equipo se pondrá en contacto contigo para los pasos siguientes.
+          </p>
         </div>
       )}
     </div>

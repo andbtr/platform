@@ -1,12 +1,14 @@
 "use client"
 
+import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
 import { User, Lock } from "lucide-react"
 import { useToast } from '@/hooks/use-toast'
+import { useSupabase } from "@/components/providers/supabase-provider"
 
 export default function LoginForm() {
+  const supabase = useSupabase()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -132,6 +134,13 @@ export default function LoginForm() {
           </button>
         </div>
       </form>
+
+      <p className="mt-6 text-center text-sm text-white/70">
+        ¿No tienes cuenta?{' '}
+        <Link href="/inscription" className="text-[#C5A059] font-semibold hover:text-[#E2BF7B] transition-colors">
+          Regístrate
+        </Link>
+      </p>
     </div>
   )
 }

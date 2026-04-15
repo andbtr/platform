@@ -3,6 +3,7 @@ import { Inter, Cinzel, Playfair_Display } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import AuthProvider from '@/components/providers/auth-provider'
+import { SupabaseProvider } from '@/components/providers/supabase-provider'
 import { Toaster } from '@/components/ui/toaster'
 
 const inter = Inter({ 
@@ -47,13 +48,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const supabaseUrl = process.env.SUPABASE_URL ?? ""
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY ?? ""
+
   return (
     <html lang="es" className="dark">
       <body className={`${inter.variable} ${cinzel.variable} ${playfair.variable} font-sans antialiased bg-[#050A18] text-white`}>
-        <AuthProvider>
-          {children}
-          <Toaster />
-        </AuthProvider>
+        <SupabaseProvider supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey}>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </SupabaseProvider>
         <Analytics />
       </body>
     </html>

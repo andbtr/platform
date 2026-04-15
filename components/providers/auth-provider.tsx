@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
+import { useSupabase } from "@/components/providers/supabase-provider"
 
 type AuthContextType = {
   user: any | null
@@ -19,11 +19,17 @@ type AuthContextTypeExtended = AuthContextType & {
 const AuthContext = createContext<AuthContextTypeExtended | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const supabase = useSupabase()
   const [user, setUser] = useState<any | null>(null)
   const [session, setSession] = useState<SessionType>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+
+  const setAccessTokenCookie = (token: string) => {
+    const secureAttr = typeof window !== "undefined" && window.location.protocol === "https:" ? "; secure" : ""
+    document.cookie = `sb-access-token=${token}; path=/; max-age=31536000; SameSite=Lax${secureAttr}`
+  }
 
   useEffect(() => {
     let mounted = true
@@ -38,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(currentSession)
         setAccessToken(currentSession?.access_token ?? null)
         if (currentSession?.access_token) {
-          document.cookie = `sb-access-token=${currentSession.access_token}; path=/; max-age=31536000; SameSite=Lax; secure`
+          setAccessTokenCookie(currentSession.access_token)
         }
       } catch (err) {
         console.error("Error getting supabase session", err)
@@ -57,7 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAccessToken(session?.access_token ?? null)
 
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        document.cookie = `sb-access-token=${session?.access_token}; path=/; max-age=31536000; SameSite=Lax; secure`
+        if (session?.access_token) {
+          setAccessTokenCookie(session.access_token)
+        }
       } else if (event === "SIGNED_OUT") {
         document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
       }

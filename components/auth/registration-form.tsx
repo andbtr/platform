@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
-import { Check, ChevronRight, ChevronLeft, Sparkles } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Check, ChevronRight, ChevronLeft, ShieldCheck, Users, Landmark } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { supabase } from "@/lib/supabase"
 import { PersonalInfoStep } from "@/components/auth/personal-info-step"
 import { BlockSelectionStep } from "@/components/auth/block-selection-step"
-import { PaymentStep } from "@/components/auth/payment-step"
+import { useSupabase } from "@/components/providers/supabase-provider"
 
 type Bloque = {
   id: string | number
@@ -22,11 +21,10 @@ type FormData = {
   email: string
   residencia: string
   bloque: string
-  cuotas: number
-  voucher: File | null
 }
 
 export function RegistrationForm() {
+  const supabase = useSupabase()
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState<FormData>({
     nombres: "",
@@ -36,10 +34,7 @@ export function RegistrationForm() {
     email: "",
     residencia: "",
     bloque: "",
-    cuotas: 8,
-    voucher: null,
   })
-  const [dragActive, setDragActive] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [bloques, setBloques] = useState<Bloque[]>([])
   const [loadingBloques, setLoadingBloques] = useState(true)
@@ -66,7 +61,7 @@ export function RegistrationForm() {
     }
 
     fetchBloques()
-  }, [])
+  }, [supabase])
 
   const validateDNI = (dni: string) => {
     return /^\d{8}$/.test(dni)
@@ -94,69 +89,70 @@ export function RegistrationForm() {
   const nextStep = () => {
     if (step === 1 && !validateStep1()) return
     if (step === 2 && !validateStep2()) return
-    setStep((prev) => Math.min(prev + 1, 3))
+    setStep((prev) => Math.min(prev + 1, 2))
   }
 
   const prevStep = () => {
     setStep((prev) => Math.max(prev - 1, 1))
   }
 
-  const handleDrag = useCallback((e: React.DragEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    e.stopPropagation()
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
-    } else if (e.type === "dragleave") {
-      setDragActive(false)
-    }
-  }, [])
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFormData((prev) => ({ ...prev, voucher: e.dataTransfer.files[0] }))
-    }
-  }, [])
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormData((prev) => ({ ...prev, voucher: e.target.files![0] }))
-    }
+    alert("Tu postulación ha sido enviada. Nos pondremos en contacto contigo para el proceso de ingreso.")
   }
 
   const selectedBloque = bloques.find((b) => String(b.id) === String(formData.bloque))
-  const monthlyAmount = selectedBloque ? Math.ceil(selectedBloque.total_price / formData.cuotas) : 0
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    alert("¡Inscripción enviada! Te contactaremos pronto. ¡Bienvenido a la familia Huajsapata!")
-  }
 
   return (
-    <section className="relative py-20 md:py-32">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#050A18] via-[#0A1535] to-[#050A18]" />
-      
-      {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent" />
-      <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#4FB8C4]/50 to-transparent" />
+    <section className="relative py-20 md:py-32 overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(79,184,196,0.14),_transparent_32%),linear-gradient(180deg,_#030712_0%,_#071225_46%,_#030712_100%)]" />
+      <div className="absolute top-24 left-[-6rem] h-72 w-72 rounded-full bg-[#4FB8C4]/10 blur-3xl" />
+      <div className="absolute bottom-0 right-[-4rem] h-80 w-80 rounded-full bg-[#C5A059]/10 blur-3xl" />
+      <div className="absolute top-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-[#C5A059]/60 to-transparent" />
 
       <div className="relative z-10 container mx-auto px-4">
-        {/* Section Header */}
-        <div className="text-center mb-12">
-          <h2 className="font-[family-name:var(--font-cinzel)] text-3xl md:text-5xl font-bold mb-4">
-            <span className="text-gold-gradient">Inscríbete Ahora</span>
-          </h2>
-          <p className="text-white/70 max-w-xl mx-auto">
-            Únete a más de 500 danzantes que mantienen viva la tradición de la Morenada en Puno
-          </p>
+        <div className="mx-auto mb-12 max-w-4xl rounded-[2rem] border border-[#C5A059]/20 bg-white/5 p-6 md:p-8 backdrop-blur-xl shadow-2xl shadow-black/20">
+          <div className="flex flex-col gap-6">
+            <div className="min-w-0 max-w-2xl">
+              <p className="mb-3 text-sm uppercase tracking-[0.24em] text-[#4FB8C4]">Inscripción formal</p>
+              <h2 className="font-[family-name:var(--font-cinzel)] text-3xl md:text-5xl font-bold leading-tight">
+                <span className="text-gold-gradient">Inscríbete en Huajsapata</span>
+              </h2>
+              <p className="mt-4 text-white/75 md:text-lg leading-relaxed">
+                Esta es la inscripción oficial para formar parte del conjunto folklórico Huajsapata. Completa tus datos y elige
+                el bloque al que deseas unirte.
+              </p>
+            </div>
+
+            <div className="grid min-w-0 gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="flex min-w-0 h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-[#081429]/70 p-3 sm:min-h-[9.5rem] sm:p-4">
+                <ShieldCheck className="mb-2 h-5 w-5 text-[#4FB8C4] sm:mb-3 sm:h-6 sm:w-6" />
+                <p className="break-words text-sm font-semibold text-white leading-snug sm:text-base">Datos de inscripción</p>
+                <p className="mt-1 break-words text-xs leading-snug text-white/60 sm:mt-2 sm:text-sm">
+                  Información precisa para contacto y registro.
+                </p>
+              </div>
+              <div className="flex min-w-0 h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-[#081429]/70 p-3 sm:min-h-[9.5rem] sm:p-4">
+                <Users className="mb-2 h-5 w-5 text-[#C5A059] sm:mb-3 sm:h-6 sm:w-6" />
+                <p className="break-words text-sm font-semibold text-white leading-snug sm:text-base">Elección de bloque</p>
+                <p className="mt-1 break-words text-xs leading-snug text-white/60 sm:mt-2 sm:text-sm">
+                  Selecciona el bloque donde deseas inscribirte.
+                </p>
+              </div>
+              <div className="flex min-w-0 h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-[#081429]/70 p-3 sm:min-h-[9.5rem] sm:p-4 sm:col-span-2 xl:col-span-1">
+                <Landmark className="mb-2 h-5 w-5 text-[#E91E8C] sm:mb-3 sm:h-6 sm:w-6" />
+                <p className="break-words text-sm font-semibold text-white leading-snug sm:text-base">Registro confirmado</p>
+                <p className="mt-1 break-words text-xs leading-snug text-white/60 sm:mt-2 sm:text-sm">
+                  Tu información queda lista para seguimiento interno.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-12 max-w-md mx-auto">
-          {[1, 2, 3].map((s) => (
+          {[1, 2].map((s) => (
             <div key={s} className="flex items-center">
               <div
                 className={cn(
@@ -168,7 +164,7 @@ export function RegistrationForm() {
               >
                 {step > s ? <Check className="w-5 h-5" /> : s}
               </div>
-              {s < 3 && (
+              {s < 2 && (
                 <div
                   className={cn(
                     "w-16 md:w-24 h-1 mx-2 rounded-full transition-all duration-300",
@@ -184,6 +180,10 @@ export function RegistrationForm() {
         <div className="max-w-2xl mx-auto">
           <div className="glass-strong rounded-3xl p-6 md:p-10 border-gold-glow">
             <form onSubmit={handleSubmit}>
+              <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-relaxed text-white/70">
+                Completa tus datos personales y luego elige el bloque al que deseas inscribirte.
+              </div>
+
               {/* Step 1: Identity */}
               {step === 1 && (
                 <PersonalInfoStep 
@@ -206,19 +206,6 @@ export function RegistrationForm() {
                 />
               )}
 
-              {/* Step 3: Payment */}
-              {step === 3 && (
-                <PaymentStep 
-                  formData={formData}
-                  selectedBloque={selectedBloque}
-                  monthlyAmount={monthlyAmount}
-                  dragActive={dragActive}
-                  handleDrag={handleDrag}
-                  handleDrop={handleDrop}
-                  handleFileChange={handleFileChange}
-                />
-              )}
-
               {/* Navigation Buttons */}
               <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/10">
                 {step > 1 ? (
@@ -234,7 +221,7 @@ export function RegistrationForm() {
                   <div />
                 )}
 
-                {step < 3 ? (
+                {step < 2 ? (
                   <button
                     type="button"
                     onClick={nextStep}
@@ -248,8 +235,7 @@ export function RegistrationForm() {
                     type="submit"
                     className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#E91E8C] to-[#C5156F] text-white font-bold rounded-full btn-glow transition-all hover:scale-105"
                   >
-                    Completar Inscripción
-                    <Sparkles className="w-5 h-5" />
+                    Enviar inscripción
                   </button>
                 )}
               </div>

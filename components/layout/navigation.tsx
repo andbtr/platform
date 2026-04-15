@@ -8,12 +8,33 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/components/providers/auth-provider"
 import { useEffect } from "react"
-import { supabase } from "@/lib/supabase"
+import { useSupabase } from "@/components/providers/supabase-provider"
+import { usePathname, useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 export function Navigation() {
+  const supabase = useSupabase()
+  const router = useRouter()
+  const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const [currentHash, setCurrentHash] = useState("")
   const { user, signOut } = useAuth()
   const [isAdmin, setIsAdmin] = useState(false)
+
+  const displayName = (() => {
+    if (!user) return null
+    const meta = (user as any).user_metadata ?? {}
+    const candidate =
+      meta.full_name ||
+      meta.name ||
+      meta.display_name ||
+      meta.username ||
+      (typeof user.email === "string" ? user.email.split("@")[0] : null)
+    return typeof candidate === "string" ? candidate.trim() : null
+  })()
+
+  const isPathActive = (path: string) => pathname === path
+  const isInfoActive = pathname === "/" && currentHash === "#info"
 
   useEffect(() => {
     let mounted = true
@@ -39,10 +60,23 @@ export function Navigation() {
     return () => { mounted = false }
   }, [user])
 
-  const scrollToSection = (id: string) => {
+  useEffect(() => {
+    const updateHash = () => setCurrentHash(window.location.hash)
+    updateHash()
+    window.addEventListener("hashchange", updateHash)
+    return () => window.removeEventListener("hashchange", updateHash)
+  }, [pathname])
+
+  const goToInfoSection = () => {
     setIsOpen(false)
-    const element = document.getElementById(id)
-    element?.scrollIntoView({ behavior: "smooth" })
+
+    if (pathname === "/") {
+      document.getElementById("info")?.scrollIntoView({ behavior: "smooth" })
+      setCurrentHash("#info")
+      return
+    }
+
+    router.push("/#info")
   }
 
   return (
@@ -67,14 +101,24 @@ export function Navigation() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             <button
-              onClick={() => scrollToSection("info")}
-              className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+              onClick={goToInfoSection}
+              className={cn(
+                "transition-colors text-sm rounded-full px-3 py-1.5",
+                isInfoActive
+                  ? "bg-primary/20 text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
             >
               Información
             </button>
             <Link 
               href="/dashboard"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+              className={cn(
+                "flex items-center gap-2 transition-colors text-sm rounded-full px-3 py-1.5",
+                isPathActive("/dashboard")
+                  ? "bg-primary/20 text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
             >
               <User className="w-4 h-4" />
               Mi Panel
@@ -82,7 +126,12 @@ export function Navigation() {
             {isAdmin && (
               <Link 
                 href="/admin"
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+                className={cn(
+                  "flex items-center gap-2 transition-colors text-sm rounded-full px-3 py-1.5",
+                  isPathActive("/admin")
+                    ? "bg-accent/20 text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
               >
                 <Shield className="w-4 h-4" />
                 Admin
@@ -93,18 +142,35 @@ export function Navigation() {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
             <Link href="/inscription"> 
-              <Button className="bg-accent hover:bg-accent/90 text-white font-bold">
+              <Button className={cn(
+                "bg-accent hover:bg-accent/90 text-white font-bold",
+                isPathActive("/inscription") && "ring-2 ring-accent/60"
+              )}>
                 Inscribirme
               </Button>
             </Link>
 
             {user ? (
-              <Button variant="ghost" onClick={async () => await signOut()}>
-                Cerrar sesión
-              </Button>
+              <>
+                {displayName && (
+                  <span className="hidden lg:inline-flex items-center rounded-full bg-primary/15 border border-primary/30 px-3 py-1.5 text-sm text-foreground">
+                    Hola, {displayName}
+                  </span>
+                )}
+                <Button variant="ghost" onClick={async () => await signOut()}>
+                  Cerrar sesión
+                </Button>
+              </>
             ) : (
               <Link href="/login">
-                <Button variant="outline">Entrar</Button>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    isPathActive("/login") && "bg-primary/15 border-primary/40 text-foreground"
+                  )}
+                >
+                  Entrar
+                </Button>
               </Link>
             )}
           </div>
@@ -134,6 +200,13 @@ export function Navigation() {
                   </div>
                 </div>
 
+                {user && displayName && (
+                  <div className="mb-6 rounded-xl border border-primary/25 bg-primary/10 px-3 py-2">
+                    <p className="text-xs text-primary uppercase tracking-wide">Sesión activa</p>
+                    <p className="text-sm text-foreground font-medium truncate">{displayName}</p>
+                  </div>
+                )}
+
                 <Link 
                   href="/inscription"
                   onClick={() => setIsOpen(false)}
@@ -146,8 +219,11 @@ export function Navigation() {
 
                 <nav className="flex flex-col gap-4">
                   <button 
-                    onClick={() => scrollToSection("info")}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 text-foreground transition-colors text-left"
+                    onClick={goToInfoSection}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg text-foreground transition-colors text-left",
+                      isInfoActive ? "bg-primary/20" : "hover:bg-primary/10"
+                    )}
                   >
                     Información
                   </button>
@@ -155,7 +231,10 @@ export function Navigation() {
                   <Link 
                     href="/dashboard"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 text-foreground transition-colors"
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg text-foreground transition-colors",
+                      isPathActive("/dashboard") ? "bg-primary/20" : "hover:bg-primary/10"
+                    )}
                   >
                     <User className="w-5 h-5 text-primary" />
                     Mi Panel de Socio
@@ -164,7 +243,10 @@ export function Navigation() {
                     <Link 
                       href="/admin"
                       onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 text-foreground transition-colors"
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg text-foreground transition-colors",
+                        isPathActive("/admin") ? "bg-accent/20" : "hover:bg-primary/10"
+                      )}
                     >
                       <Shield className="w-5 h-5 text-accent" />
                       Panel Administrador
@@ -178,7 +260,14 @@ export function Navigation() {
                       Cerrar sesión
                     </button>
                   ) : (
-                    <Link href="/login" onClick={() => setIsOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 text-foreground transition-colors">
+                    <Link
+                      href="/login"
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg text-foreground transition-colors",
+                        isPathActive("/login") ? "bg-primary/20" : "hover:bg-primary/10"
+                      )}
+                    >
                       Entrar
                     </Link>
                   )}

@@ -59,3 +59,5 @@ yarn.lock
 .sass-cache/
 coverage/
 /.history/
+
+.env

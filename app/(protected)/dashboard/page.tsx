@@ -7,8 +7,8 @@ export default async function DashboardPage() {
   const cookieStore = await cookies()
   const accessToken = cookieStore.get("sb-access-token")?.value
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabaseUrl = process.env.SUPABASE_URL!
+  const supabaseKey = process.env.SUPABASE_ANON_KEY!
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {

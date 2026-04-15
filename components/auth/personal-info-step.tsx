@@ -10,10 +10,16 @@ export function PersonalInfoStep({ formData, setFormData, errors }: any) {
         </div>
         <div>
           <h3 className="font-[family-name:var(--font-cinzel)] text-xl font-bold text-white">
-            Datos Personales
+            Datos de Inscripción
           </h3>
-          <p className="text-white/60 text-sm">Paso 1 de 3</p>
+          <p className="text-white/60 text-sm">Paso 1 de 2</p>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6">
+        <p className="text-white/75 leading-relaxed">
+          Completa tus datos con precisión. Esta información se usa para tu registro en el conjunto folklórico.
+        </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
