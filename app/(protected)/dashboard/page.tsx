@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
 import { DashboardClientWrapper } from "@/components/dashboard/dashboard-client-wrapper"
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 
 export default async function DashboardPage() {
   const cookieStore = await cookies()
@@ -90,11 +91,17 @@ export default async function DashboardPage() {
         <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-accent/5 blur-3xl rounded-full" />
       </div>
 
-      <DashboardClientWrapper
-        initialSocio={initialSocio}
-        initialPayments={initialPayments}
-        user={user}
-      />
+      <div className="relative z-20">
+        <DashboardHeader />
+      </div>
+
+      <div className="pt-16 md:pt-20">
+        <DashboardClientWrapper
+          initialSocio={initialSocio}
+          initialPayments={initialPayments}
+          user={user}
+        />
+      </div>
     </div>
   )
 }

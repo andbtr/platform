@@ -1,7 +1,6 @@
 "use client"
 
 import { useDashboardState } from "@/hooks/use-dashboard-state"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardStats } from "@/components/dashboard/dashboard-stats"
 import { PaymentHistory } from "@/components/dashboard/payment-history"
 import { PaymentInfo } from "@/components/dashboard/payment-info"
@@ -33,8 +32,6 @@ export function DashboardClientWrapper({ initialSocio, initialPayments, user }: 
 
   return (
     <>
-      <DashboardHeader />
-
       <main className="relative z-10 container mx-auto px-4 py-6 pb-24">
         {/* Welcome Section */}
         <div className="mb-8">

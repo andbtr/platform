@@ -85,15 +85,35 @@ export function PersonalInfoStep({ formData, setFormData, errors }: any) {
         </div>
       </div>
 
-      <div>
-        <label className="block text-[#C5A059] text-sm mb-2 font-medium">Email (opcional)</label>
-        <input
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all"
-          placeholder="tu@email.com"
-        />
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-[#C5A059] text-sm mb-2 font-medium">Email</label>
+          <input
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className={cn(
+              "w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all",
+              errors.email ? "border-red-500" : "border-white/10"
+            )}
+            placeholder="tu@email.com"
+          />
+          {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+        </div>
+        <div>
+          <label className="block text-[#C5A059] text-sm mb-2 font-medium">Contraseña</label>
+          <input
+            type="password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            className={cn(
+              "w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all",
+              errors.password ? "border-red-500" : "border-white/10"
+            )}
+            placeholder="••••••••"
+          />
+          {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
+        </div>
       </div>
 
       <div>

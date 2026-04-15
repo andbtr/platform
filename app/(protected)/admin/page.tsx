@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { createClient } from "@supabase/supabase-js"
 import { AdminClientWrapper } from "@/components/admin/admin-client-wrapper"
+import { AdminHeader } from "@/components/admin/admin-header"
 
 export default async function AdminPage() {
   const cookieStore = await cookies()
@@ -77,9 +78,17 @@ export default async function AdminPage() {
   }))
 
   return (
-    <AdminClientWrapper 
-      initialPayments={payments} 
-      initialTotalCount={count} 
-    />
+    <>
+      <div className="relative z-20">
+        <AdminHeader />
+      </div>
+
+      <div className="pt-16 md:pt-20">
+        <AdminClientWrapper 
+          initialPayments={payments} 
+          initialTotalCount={count} 
+        />
+      </div>
+    </>
   )
 }

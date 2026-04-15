@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { PersonalInfoStep } from "@/components/auth/personal-info-step"
 import { BlockSelectionStep } from "@/components/auth/block-selection-step"
 import { useSupabase } from "@/components/providers/supabase-provider"
+import { useRouter } from "next/navigation"
 
 type Bloque = {
   id: string | number
@@ -19,11 +20,13 @@ type FormData = {
   dni: string
   telefono: string
   email: string
+  password: string
   residencia: string
   bloque: string
 }
 
 export function RegistrationForm() {
+  const router = useRouter()
   const supabase = useSupabase()
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState<FormData>({
@@ -32,6 +35,7 @@ export function RegistrationForm() {
     dni: "",
     telefono: "",
     email: "",
+    password: "",
     residencia: "",
     bloque: "",
   })
@@ -74,6 +78,9 @@ export function RegistrationForm() {
     if (!formData.dni.trim()) newErrors.dni = "Ingresa tu DNI"
     else if (!validateDNI(formData.dni)) newErrors.dni = "El DNI debe tener 8 dígitos"
     if (!formData.telefono.trim()) newErrors.telefono = "Ingresa tu teléfono"
+    if (!formData.email.trim()) newErrors.email = "Ingresa tu email"
+    if (!formData.password.trim()) newErrors.password = "Ingresa una contraseña"
+    else if (formData.password.length < 6) newErrors.password = "Mínimo 6 caracteres"
     if (!formData.residencia.trim()) newErrors.residencia = "Ingresa tu ciudad de residencia"
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -96,9 +103,49 @@ export function RegistrationForm() {
     setStep((prev) => Math.max(prev - 1, 1))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    alert("Tu postulación ha sido enviada. Nos pondremos en contacto contigo para el proceso de ingreso.")
+    if (!validateStep2()) return
+
+    try {
+      setIsSubmitting(true)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: `${formData.nombres} ${formData.apellidos}`,
+          }
+        }
+      })
+
+      if (authError) throw authError
+
+      if (authData.user) {
+        const { error: dbError } = await supabase.from('members').insert({
+          id: authData.user.id,
+          first_name: formData.nombres,
+          last_name: formData.apellidos,
+          dni: formData.dni,
+          phone: formData.telefono,
+          email: formData.email,
+          city: formData.residencia,
+          block_id: formData.bloque,
+          status: 'pending' // Or whatever default status you use
+        })
+
+        if (dbError) throw dbError
+      }
+
+      router.push('/dashboard')
+    } catch (error: any) {
+      console.error(error)
+      alert("Error registrando usuario: " + error.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const selectedBloque = bloques.find((b) => String(b.id) === String(formData.bloque))
@@ -111,44 +158,6 @@ export function RegistrationForm() {
       <div className="absolute top-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-[#C5A059]/60 to-transparent" />
 
       <div className="relative z-10 container mx-auto px-4">
-        <div className="mx-auto mb-12 max-w-4xl rounded-[2rem] border border-[#C5A059]/20 bg-white/5 p-6 md:p-8 backdrop-blur-xl shadow-2xl shadow-black/20">
-          <div className="flex flex-col gap-6">
-            <div className="min-w-0 max-w-2xl">
-              <p className="mb-3 text-sm uppercase tracking-[0.24em] text-[#4FB8C4]">Inscripción formal</p>
-              <h2 className="font-[family-name:var(--font-cinzel)] text-3xl md:text-5xl font-bold leading-tight">
-                <span className="text-gold-gradient">Inscríbete en Huajsapata</span>
-              </h2>
-              <p className="mt-4 text-white/75 md:text-lg leading-relaxed">
-                Esta es la inscripción oficial para formar parte del conjunto folklórico Huajsapata. Completa tus datos y elige
-                el bloque al que deseas unirte.
-              </p>
-            </div>
-
-            <div className="grid min-w-0 gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <div className="flex min-w-0 h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-[#081429]/70 p-3 sm:min-h-[9.5rem] sm:p-4">
-                <ShieldCheck className="mb-2 h-5 w-5 text-[#4FB8C4] sm:mb-3 sm:h-6 sm:w-6" />
-                <p className="break-words text-sm font-semibold text-white leading-snug sm:text-base">Datos de inscripción</p>
-                <p className="mt-1 break-words text-xs leading-snug text-white/60 sm:mt-2 sm:text-sm">
-                  Información precisa para contacto y registro.
-                </p>
-              </div>
-              <div className="flex min-w-0 h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-[#081429]/70 p-3 sm:min-h-[9.5rem] sm:p-4">
-                <Users className="mb-2 h-5 w-5 text-[#C5A059] sm:mb-3 sm:h-6 sm:w-6" />
-                <p className="break-words text-sm font-semibold text-white leading-snug sm:text-base">Elección de bloque</p>
-                <p className="mt-1 break-words text-xs leading-snug text-white/60 sm:mt-2 sm:text-sm">
-                  Selecciona el bloque donde deseas inscribirte.
-                </p>
-              </div>
-              <div className="flex min-w-0 h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-[#081429]/70 p-3 sm:min-h-[9.5rem] sm:p-4 sm:col-span-2 xl:col-span-1">
-                <Landmark className="mb-2 h-5 w-5 text-[#E91E8C] sm:mb-3 sm:h-6 sm:w-6" />
-                <p className="break-words text-sm font-semibold text-white leading-snug sm:text-base">Registro confirmado</p>
-                <p className="mt-1 break-words text-xs leading-snug text-white/60 sm:mt-2 sm:text-sm">
-                  Tu información queda lista para seguimiento interno.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-12 max-w-md mx-auto">
@@ -233,9 +242,10 @@ export function RegistrationForm() {
                 ) : (
                   <button
                     type="submit"
-                    className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#E91E8C] to-[#C5156F] text-white font-bold rounded-full btn-glow transition-all hover:scale-105"
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#E91E8C] to-[#C5156F] text-white font-bold rounded-full btn-glow transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Enviar inscripción
+                    {isSubmitting ? "Enviando..." : "Enviar inscripción"}
                   </button>
                 )}
               </div>

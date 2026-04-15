@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { useAdminState } from "@/hooks/use-admin-state"
-import { AdminHeader } from "@/components/admin/admin-header"
 import { AdminStats } from "@/components/admin/admin-stats"
 import dynamic from "next/dynamic"
 
@@ -54,8 +53,6 @@ export function AdminClientWrapper({ initialPayments, initialTotalCount }: Admin
         <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-accent/5 blur-3xl rounded-full" />
         <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-primary/5 blur-3xl rounded-full" />
       </div>
-
-      <AdminHeader />
 
       <main className="relative z-10 container mx-auto px-4 py-6">
         <AdminStats 
