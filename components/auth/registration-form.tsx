@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Check, ChevronRight, ChevronLeft, ShieldCheck, Users, Landmark } from "lucide-react"
+import { Check, ChevronRight, ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PersonalInfoStep } from "@/components/auth/personal-info-step"
 import { BlockSelectionStep } from "@/components/auth/block-selection-step"
@@ -151,109 +151,101 @@ export function RegistrationForm() {
   const selectedBloque = bloques.find((b) => String(b.id) === String(formData.bloque))
 
   return (
-    <section className="relative py-20 md:py-32 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(79,184,196,0.14),_transparent_32%),linear-gradient(180deg,_#030712_0%,_#071225_46%,_#030712_100%)]" />
-      <div className="absolute top-24 left-[-6rem] h-72 w-72 rounded-full bg-[#4FB8C4]/10 blur-3xl" />
-      <div className="absolute bottom-0 right-[-4rem] h-80 w-80 rounded-full bg-[#C5A059]/10 blur-3xl" />
-      <div className="absolute top-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-[#C5A059]/60 to-transparent" />
-
-      <div className="relative z-10 container mx-auto px-4">
-
-        {/* Progress Steps */}
-        <div className="flex items-center justify-center mb-12 max-w-md mx-auto">
-          {[1, 2].map((s) => (
-            <div key={s} className="flex items-center">
+    <div className="relative z-10 w-full max-w-2xl mx-auto">
+      {/* Progress Steps */}
+      <div className="flex items-center justify-center mb-12 max-w-md mx-auto">
+        {[1, 2].map((s) => (
+          <div key={s} className="flex items-center">
+            <div
+              className={cn(
+                "w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300",
+                step >= s
+                  ? "bg-gradient-to-br from-[#4FB8C4] to-[#1E6B7E] text-white shadow-lg shadow-[#4FB8C4]/30"
+                  : "glass text-white/50"
+              )}
+            >
+              {step > s ? <Check className="w-5 h-5" /> : s}
+            </div>
+            {s < 2 && (
               <div
                 className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300",
-                  step >= s
-                    ? "bg-gradient-to-br from-[#4FB8C4] to-[#1E6B7E] text-white shadow-lg shadow-[#4FB8C4]/30"
-                    : "glass text-white/50"
+                  "w-16 md:w-24 h-1 mx-2 rounded-full transition-all duration-300",
+                  step > s ? "bg-gradient-to-r from-[#4FB8C4] to-[#C5A059]" : "bg-white/10"
                 )}
-              >
-                {step > s ? <Check className="w-5 h-5" /> : s}
-              </div>
-              {s < 2 && (
-                <div
-                  className={cn(
-                    "w-16 md:w-24 h-1 mx-2 rounded-full transition-all duration-300",
-                    step > s ? "bg-gradient-to-r from-[#4FB8C4] to-[#C5A059]" : "bg-white/10"
-                  )}
-                />
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Form Container */}
+      <div className="max-w-2xl mx-auto">
+        <div className="glass-strong rounded-3xl p-6 md:p-10 border-gold-glow">
+          <form onSubmit={handleSubmit}>
+            <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-relaxed text-white/70">
+              Completa tus datos personales y luego elige el bloque al que deseas inscribirte.
+            </div>
+
+            {/* Step 1: Identity */}
+            {step === 1 && (
+              <PersonalInfoStep
+                formData={formData}
+                setFormData={setFormData}
+                errors={errors}
+              />
+            )}
+
+            {/* Step 2: Block Selection */}
+            {step === 2 && (
+              <BlockSelectionStep
+                formData={formData}
+                setFormData={setFormData}
+                errors={errors}
+                bloques={bloques}
+                loadingBloques={loadingBloques}
+                errorBloques={errorBloques}
+                selectedBloque={selectedBloque}
+              />
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/10">
+              {step > 1 ? (
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  className="flex items-center gap-2 px-6 py-3 text-white/70 hover:text-white transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                  Anterior
+                </button>
+              ) : (
+                <div />
+              )}
+
+              {step < 2 ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#4FB8C4] to-[#1E6B7E] text-white font-bold rounded-full hover:shadow-lg hover:shadow-[#4FB8C4]/30 transition-all"
+                >
+                  Siguiente
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold rounded-full btn-glow transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? "Enviando..." : "Enviar inscripción"}
+                </button>
               )}
             </div>
-          ))}
-        </div>
-
-        {/* Form Container */}
-        <div className="max-w-2xl mx-auto">
-          <div className="glass-strong rounded-3xl p-6 md:p-10 border-gold-glow">
-            <form onSubmit={handleSubmit}>
-              <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-relaxed text-white/70">
-                Completa tus datos personales y luego elige el bloque al que deseas inscribirte.
-              </div>
-
-              {/* Step 1: Identity */}
-              {step === 1 && (
-                <PersonalInfoStep 
-                  formData={formData} 
-                  setFormData={setFormData} 
-                  errors={errors} 
-                />
-              )}
-
-              {/* Step 2: Block Selection */}
-              {step === 2 && (
-                <BlockSelectionStep 
-                  formData={formData} 
-                  setFormData={setFormData} 
-                  errors={errors}
-                  bloques={bloques}
-                  loadingBloques={loadingBloques}
-                  errorBloques={errorBloques}
-                  selectedBloque={selectedBloque}
-                />
-              )}
-
-              {/* Navigation Buttons */}
-              <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/10">
-                {step > 1 ? (
-                  <button
-                    type="button"
-                    onClick={prevStep}
-                    className="flex items-center gap-2 px-6 py-3 text-white/70 hover:text-white transition-colors"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                    Anterior
-                  </button>
-                ) : (
-                  <div />
-                )}
-
-                {step < 2 ? (
-                  <button
-                    type="button"
-                    onClick={nextStep}
-                    className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#4FB8C4] to-[#1E6B7E] text-white font-bold rounded-full hover:shadow-lg hover:shadow-[#4FB8C4]/30 transition-all"
-                  >
-                    Siguiente
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#E91E8C] to-[#C5156F] text-white font-bold rounded-full btn-glow transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? "Enviando..." : "Enviar inscripción"}
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
+          </form>
         </div>
       </div>
-    </section>
+    </div>
   )
 }
 

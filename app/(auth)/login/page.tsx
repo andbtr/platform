@@ -5,10 +5,10 @@ export default function LoginPage() {
   return (
     <main className="relative min-h-screen flex flex-col overflow-hidden bg-[#081426]">
       <div
-        className="absolute inset-0 opacity-20 bg-cover bg-center"
+        className="fixed inset-0 opacity-20 bg-cover bg-center pointer-events-none"
         style={{ backgroundImage: 'url(/images/hero-bg.jpg)' }}
       />
-      <div className="absolute inset-0 bg-linear-to-b from-[#050A18]/95 via-[#081426]/92 to-[#0F1B2E]/95" />
+      <div className="fixed inset-0 pointer-events-none bg-linear-to-b from-[#050A18]/95 via-[#081426]/92 to-[#0F1B2E]/95" />
 
       <div className="relative z-20">
         <Navigation />
@@ -21,6 +21,7 @@ export default function LoginPage() {
               <img
                 src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/huajsapata.png-ETs04yCnOGaA9a5tqHdj4RSxflUMNS.jpeg"
                 alt="Morenada Huajsapata"
+                loading="eager"
                 className="w-8 h-8 rounded-full object-cover"
               />
               <span className="text-white/90 text-sm tracking-wide">Morenada Huajsapata</span>

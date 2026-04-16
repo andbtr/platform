@@ -22,7 +22,6 @@ export function useAdminState({ initialPayments, initialTotalCount }: UseAdminSt
   const [page, setPage] = useState<number>(1)
   const [pageSize, setPageSize] = useState<number>(10)
   const [totalCount, setTotalCount] = useState<number | null>(initialTotalCount)
-  const [socios, setSocios] = useState<any[]>([])
 
   const reloadPagos = async (opts: { pageNum?: number; pSize?: number; q?: string; s?: string }) => {
     setLoadingPagos(true)

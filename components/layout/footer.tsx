@@ -18,6 +18,7 @@ export function Footer() {
               alt="Morenada Huajsapata"
               width={100}
               height={100}
+              loading="eager"
               className="w-20 h-20 object-contain mx-auto md:mx-0 mb-4"
             />
             <h3 className="font-[family-name:var(--font-cinzel)] text-xl font-bold text-gold-gradient mb-2">

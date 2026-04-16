@@ -16,6 +16,7 @@ export function DashboardHeader() {
                 alt="Morenada Huajsapata"
                 width={40}
                 height={40}
+                loading="eager"
                 className="rounded-full border border-primary/30 hover:scale-105 transition-transform"
               />
             </Link>

@@ -29,17 +29,14 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
-  let resolvedMemberId = null
-  let memberDetails = null
-
   const { data: memberRow } = await supabase
     .from("members")
     .select("*")
     .eq("id", user.id)
     .maybeSingle()
 
-  resolvedMemberId = memberRow?.id ?? null
-  memberDetails = memberRow
+  let resolvedMemberId = memberRow?.id ?? null
+  let memberDetails = memberRow
 
   if (!resolvedMemberId && user.email) {
     const { data: memberByEmail } = await supabase

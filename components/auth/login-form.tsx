@@ -24,7 +24,7 @@ export default function LoginForm() {
 
     try {
       const finalEmail = email.includes('@') ? email : `${email}@huajsapata.com`
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: finalEmail,
         password,
       })
@@ -53,7 +53,7 @@ export default function LoginForm() {
     setError(null)
     try {
       const finalEmail = email.includes('@') ? email : `${email}@huajsapata.com`
-      const { data, error } = await supabase.auth.resetPasswordForEmail(finalEmail)
+      const { error } = await supabase.auth.resetPasswordForEmail(finalEmail)
       setLoading(false)
       if (error) {
         setError(error.message)

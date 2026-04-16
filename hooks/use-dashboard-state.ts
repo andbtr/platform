@@ -1,9 +1,6 @@
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 
 export function useDashboardState({ initialSocio, initialPayments }: { initialSocio: any; initialPayments: any[] }) {
-  const router = useRouter()
-
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
   const [voucherFile, setVoucherFile] = useState<File | null>(null)
   const [voucherPreview, setVoucherPreview] = useState<string | null>(null)

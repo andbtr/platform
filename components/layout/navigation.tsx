@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Bell, Menu, User, Shield, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/components/providers/auth-provider"
 import { useEffect } from "react"
 import { useSupabase } from "@/components/providers/supabase-provider"
@@ -54,7 +54,7 @@ export function Navigation() {
       try {
         const { data } = await supabase.from('members').select('is_admin').eq('id', user.id).maybeSingle()
         if (mounted) setIsAdmin(Boolean(data?.is_admin))
-      } catch (e) {
+      } catch {
         if (mounted) setIsAdmin(false)
       }
     })()
@@ -91,6 +91,7 @@ export function Navigation() {
               alt="Morenada Huajsapata"
               width={48}
               height={48}
+              loading="eager"
               className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-primary/30"
             />
             <div className="hidden sm:block">
@@ -195,6 +196,10 @@ export function Navigation() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="glass-card border-l border-primary/20 w-[300px] p-0">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Menú de navegación</SheetTitle>
+                  <SheetDescription>Navegación principal del sitio</SheetDescription>
+                </SheetHeader>
                 <div className="flex flex-col h-full bg-background/60 backdrop-blur-xl">
                   {/* Header */}
                   <div className="p-6 border-b border-primary/10">
@@ -204,6 +209,7 @@ export function Navigation() {
                         alt="Morenada Huajsapata"
                         width={40}
                         height={40}
+                        loading="eager"
                         className="rounded-full border border-primary/30"
                       />
                       <div>

@@ -78,6 +78,7 @@ export function HeroSection() {
             alt="Logo Morenada Huajsapata"
             width={120}
             height={120}
+            loading="eager"
             className="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow-2xl"
           />
         </div>
