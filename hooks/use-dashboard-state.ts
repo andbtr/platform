@@ -91,13 +91,16 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
     const nextDueDate = new Date(regDate)
     nextDueDate.setMonth(regDate.getMonth() + cuotasCompletas)
 
+    // Ajuste para el monto total: usar el precio real del bloque si existe, sino calcularlo
+    const totalACubrir = initialSocio.montoTotal || (cuotasTotalesCalculadas * CUOTA_AMOUNT)
+
     setSocio((prev: any) => ({
       ...prev,
       montoPagado: montoTotalPagado,
       cuotasPagadas: cuotasCompletas, 
       proximoVencimiento: nextDueDate.toISOString(),
       cuotasTotales: cuotasTotalesCalculadas,
-      montoTotal: cuotasTotalesCalculadas * CUOTA_AMOUNT
+      montoTotal: totalACubrir
     }))
   }, [payments, cuotasTotalesCalculadas, initialSocio.registrationDate, initialSocio.montoMensual])
 

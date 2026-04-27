@@ -26,22 +26,19 @@ export function AdminHeader() {
             </Link>
             <nav className="hidden md:flex items-center gap-6 border-l border-primary/20 pl-6">
               <Link href="/admin" className="text-sm font-medium text-foreground">Mi panel</Link>
-              <Link href="/admin#pagos" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Pagos</Link>
-              <Link href="/admin#estado" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Estado</Link>
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
-              <Bell className="w-5 h-5" />
-            </Button>
             <Button variant="outline" size="sm" className="hidden sm:flex border-primary/30">
               <Download className="w-4 h-4 mr-2" />
               Exportar
             </Button>
-            <Button variant="outline" size="sm" className="hidden sm:flex border-primary/30 ml-2">
-              <User className="w-4 h-4 mr-2" />
-              Mi Perfil
-            </Button>
+            <Link href="/profile">
+              <Button variant="outline" size="sm" className="hidden sm:flex border-primary/30 ml-2">
+                <User className="w-4 h-4 mr-2" />
+                Mi Perfil
+              </Button>
+            </Link>
             <div className="md:hidden">
               <Sheet>
                 <SheetTrigger asChild>
@@ -55,14 +52,14 @@ export function AdminHeader() {
                   </SheetHeader>
                   <nav className="flex flex-col gap-4 mt-8">
                     <Link href="/admin" className="text-lg font-medium">Mi panel</Link>
-                    <Link href="/admin#pagos" className="text-lg font-medium text-muted-foreground hover:text-foreground">Pagos</Link>
-                    <Link href="/admin#estado" className="text-lg font-medium text-muted-foreground hover:text-foreground">Estado</Link>
                     <div className="h-px bg-border my-4" />
-                    <Button variant="outline" className="w-full justify-start">
-                      <User className="w-4 h-4 mr-2" />
-                      Mi Perfil
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
+                    <Link href="/profile">
+                      <Button variant="outline" className="w-full justify-start border-primary/30">
+                        <User className="w-4 h-4 mr-2" />
+                        Mi Perfil
+                      </Button>
+                    </Link>
+                    <Button variant="outline" className="w-full justify-start border-primary/30">
                       <Download className="w-4 h-4 mr-2" />
                       Exportar
                     </Button>

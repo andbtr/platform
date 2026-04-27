@@ -55,25 +55,13 @@ export default async function DashboardPage() {
     .from("members")
     .select("*, blocks(*)")
     .eq("id", user.id)
-    .maybeSingle()
+    .single()
 
   let resolvedMemberId = memberRow?.id ?? null
   let memberDetails = memberRow
 
-  if (!resolvedMemberId && user.email) {
-    const { data: memberByEmail } = await supabase
-      .from("members")
-      .select("*, blocks(*)")
-      .eq("email", user.email)
-      .limit(1)
-      .maybeSingle()
-    
-    resolvedMemberId = memberByEmail?.id ?? resolvedMemberId
-    memberDetails = memberByEmail ?? memberDetails
-  }
-
   // Calcular el monto mensual basado en el precio del bloque y cuotas iniciales
-  const precioBloque = memberDetails?.blocks?.price || 0
+  const precioBloque = memberDetails?.blocks?.total_price || memberDetails?.blocks?.price || 0
   const cuotasRegistro = memberDetails?.total_installments || 1
   const montoMensualCalculado = precioBloque > 0 ? (precioBloque / cuotasRegistro) : 90
 
@@ -99,10 +87,16 @@ export default async function DashboardPage() {
     dni: memberDetails?.dni ?? "",
     bloque: memberDetails?.blocks?.name ?? memberDetails?.blocks?.block_name ?? memberDetails?.block_id ?? "",
     montoMensual: montoMensualCalculado, 
-    montoTotal: precioBloque,
-    montoPagado: initialPayments.filter(p => p.status === 'APPROVED' || p.status === 'approved' || p.status === 'APROBADO').reduce((acc, p) => acc + (p.amount_paid || 0), 0),
+    montoTotal: precioBloque || (cuotasRegistro * montoMensualCalculado),
+    montoPagado: initialPayments.filter(p => {
+      const s = (p.status || '').toLowerCase();
+      return s === 'approved' || s === 'aprobado';
+    }).reduce((acc, p) => acc + (p.amount_paid || 0), 0),
     cuotasTotales: cuotasRegistro,
-    cuotasPagadas: Math.floor(initialPayments.filter(p => p.status === 'APPROVED' || p.status === 'approved' || p.status === 'APROBADO').reduce((acc, p) => acc + (p.amount_paid || 0), 0) / montoMensualCalculado),
+    cuotasPagadas: Math.floor(initialPayments.filter(p => {
+      const s = (p.status || '').toLowerCase();
+      return s === 'approved' || s === 'aprobado';
+    }).reduce((acc, p) => acc + (p.amount_paid || 0), 0) / montoMensualCalculado),
     proximoVencimiento: new Date().toISOString(),
     registrationDate: memberDetails?.created_at || new Date().toISOString(),
     historialPagos: [],

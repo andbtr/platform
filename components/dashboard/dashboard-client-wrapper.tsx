@@ -90,8 +90,6 @@ export function DashboardClientWrapper({ initialSocio, initialPayments, user }: 
           paymentsLoading={paymentsLoading} 
           paymentsError={paymentsError} 
         />
-
-        <PaymentInfo />
       </main>
 
       <NewPaymentModal 
