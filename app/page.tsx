@@ -4,6 +4,9 @@ import { getBlocks } from "@/lib/supabase-server"
 import dynamic from "next/dynamic"
 
 const InfoSection = dynamic(() => import("@/components/sections/info-section").then(mod => mod.InfoSection))
+const NewsSection = dynamic(() => import("@/components/sections/news-section").then(mod => mod.NewsSection))
+const FilialesSection = dynamic(() => import("@/components/sections/filiales-section").then(mod => mod.FilialesSection))
+const GallerySection = dynamic(() => import("@/components/sections/gallery-section").then(mod => mod.GallerySection))
 const BlocksSection = dynamic(() => import("@/components/sections/blocks-section").then(mod => mod.BlocksSection))
 const Footer = dynamic(() => import("@/components/layout/footer").then(mod => mod.Footer))
 
@@ -15,6 +18,9 @@ export default async function Home() {
       <Navigation />
       <HeroSection />
       <InfoSection />
+      <NewsSection />
+      <FilialesSection />
+      <GallerySection />
       <BlocksSection blocks={blocks} />
       <Footer />
     </main>

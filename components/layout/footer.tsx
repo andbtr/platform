@@ -13,39 +13,47 @@ export function Footer() {
         <div className="grid md:grid-cols-3 gap-12 mb-12">
           {/* Logo & Description */}
           <div className="text-center md:text-left">
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/huajsapata.png-ETs04yCnOGaA9a5tqHdj4RSxflUMNS.jpeg"
-              alt="Morenada Huajsapata"
-              width={100}
-              height={100}
-              loading="eager"
-              className="w-20 h-20 object-contain mx-auto md:mx-0 mb-4"
-            />
+            <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
+              <Image
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/huajsapata.png-ETs04yCnOGaA9a5tqHdj4RSxflUMNS.jpeg"
+                alt="Morenada Huajsapata"
+                width={80}
+                height={80}
+                loading="eager"
+                className="w-16 h-16 object-contain"
+              />
+              <div className="h-12 w-px bg-white/10" />
+              <div className="text-left">
+                <p className="text-[10px] text-white/40 uppercase tracking-tighter">Filial</p>
+                <p className="text-sm font-bold text-gold-gradient leading-none">LIMA</p>
+              </div>
+            </div>
             <h3 className="font-[family-name:var(--font-cinzel)] text-xl font-bold text-gold-gradient mb-2">
               Morenada Huajsapata
             </h3>
-            <p className="text-white/60 text-sm">
-              Gestión 2026 - 2027<br />
-              Puno, Perú
+            <p className="text-white/60 text-sm italic">
+              "Herencia que trasciende generaciones"
+            </p>
+            <p className="text-white/40 text-[10px] mt-4 uppercase tracking-widest">
+              Gestión 2026 - 2027
             </p>
           </div>
 
           {/* Contact */}
           <div className="text-center">
-            <h4 className="text-[#4FB8C4] font-semibold mb-4 uppercase tracking-wider text-sm">Contacto</h4>
-            <div className="space-y-3">
-              <a href="#" className="flex items-center justify-center gap-2 text-white/70 hover:text-white transition-colors">
-                <MapPin className="w-4 h-4 text-[#C5A059]" />
-                <span className="text-sm">Jr. Huajsapata, Puno</span>
-              </a>
-              <a href="tel:+51999888777" className="flex items-center justify-center gap-2 text-white/70 hover:text-white transition-colors">
-                <Phone className="w-4 h-4 text-[#C5A059]" />
-                <span className="text-sm">+51 999 888 777</span>
-              </a>
-              <a href="mailto:info@huajsapata.com" className="flex items-center justify-center gap-2 text-white/70 hover:text-white transition-colors">
-                <Mail className="w-4 h-4 text-[#C5A059]" />
-                <span className="text-sm">info@huajsapata.com</span>
-              </a>
+            <h4 className="text-[#4FB8C4] font-semibold mb-4 uppercase tracking-wider text-sm">Próximos Ensayos</h4>
+            <div className="space-y-4">
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-[10px] text-gold-gradient uppercase tracking-widest font-bold">Llamado a la Tropa</span>
+                <p className="text-sm text-white/70">Síguenos en nuestras redes sociales para estar al tanto de las fechas de ensayo en Lima y Puno.</p>
+              </div>
+              
+              <div className="pt-2">
+                <a href="mailto:info@huajsapata.com" className="flex items-center justify-center gap-2 text-white/70 hover:text-white transition-colors">
+                  <Mail className="w-4 h-4 text-[#C5A059]" />
+                  <span className="text-sm">info@huajsapata.com</span>
+                </a>
+              </div>
             </div>
           </div>
 

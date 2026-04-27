@@ -37,10 +37,10 @@ const features = [
 ]
 
 const stats = [
-  { value: "58+", label: "Años de Historia" },
+  { value: "60+", label: "Años de Historia" },
   { value: "500+", label: "Danzantes" },
-  { value: "10", label: "Bloques" },
-  { value: "2", label: "Días de Fiesta" },
+  { value: "8", label: "Bloques" },
+  { value: "7", label: "Días de Fiesta" },
 ]
 
 export function InfoSection() {

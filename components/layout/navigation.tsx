@@ -36,7 +36,7 @@ export function Navigation() {
   })()
 
   const isPathActive = (path: string) => pathname === path
-  const isInfoActive = pathname === "/" && currentHash === "#info"
+  const isSectionActive = (hash: string) => pathname === "/" && currentHash === hash
 
   useEffect(() => {
     let mounted = true
@@ -77,16 +77,16 @@ export function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  const goToInfoSection = () => {
+  const goToSection = (sectionId: string) => {
     setIsOpen(false)
 
     if (pathname === "/") {
-      document.getElementById("info")?.scrollIntoView({ behavior: "smooth" })
-      setCurrentHash("#info")
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" })
+      setCurrentHash(`#${sectionId}`)
       return
     }
 
-    router.push("/#info")
+    router.push(`/#${sectionId}`)
   }
 
   return (
@@ -116,17 +116,61 @@ export function Navigation() {
 
           {/* Desktop Navigation */}
           {pathname !== "/login" && pathname !== "/inscription" && (
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden md:flex items-center gap-4">
               <button
-                onClick={goToInfoSection}
+                onClick={() => goToSection("info")}
                 className={cn(
-                  "transition-colors text-sm rounded-full px-3 py-1.5",
-                  isInfoActive
+                  "transition-colors text-xs rounded-full px-3 py-1.5",
+                  isSectionActive("#info")
                     ? "bg-primary/20 text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 Información
+              </button>
+              <button
+                onClick={() => goToSection("noticias")}
+                className={cn(
+                  "transition-colors text-xs rounded-full px-3 py-1.5",
+                  isSectionActive("#noticias")
+                    ? "bg-primary/20 text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Noticias
+              </button>
+              <button
+                onClick={() => goToSection("filiales")}
+                className={cn(
+                  "transition-colors text-xs rounded-full px-3 py-1.5",
+                  isSectionActive("#filiales")
+                    ? "bg-primary/20 text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Filiales
+              </button>
+              <button
+                onClick={() => goToSection("galeria")}
+                className={cn(
+                  "transition-colors text-xs rounded-full px-3 py-1.5",
+                  isSectionActive("#galeria")
+                    ? "bg-primary/20 text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Fotos
+              </button>
+              <button
+                onClick={() => goToSection("bloques")}
+                className={cn(
+                  "transition-colors text-xs rounded-full px-3 py-1.5",
+                  isSectionActive("#bloques")
+                    ? "bg-primary/20 text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Bloques
               </button>
             </nav>
           )}
@@ -233,8 +277,46 @@ export function Navigation() {
                     </div>
                   </div>
 
-                  {/* Body */}
-                  <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+                    {/* Body */}
+                  <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+                    <Button 
+                      variant="ghost" 
+                      className="justify-start font-bold uppercase tracking-widest text-xs"
+                      onClick={() => goToSection("info")}
+                    >
+                      Información
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="justify-start font-bold uppercase tracking-widest text-xs"
+                      onClick={() => goToSection("noticias")}
+                    >
+                      Noticias
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="justify-start font-bold uppercase tracking-widest text-xs"
+                      onClick={() => goToSection("filiales")}
+                    >
+                      Filiales
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="justify-start font-bold uppercase tracking-widest text-xs"
+                      onClick={() => goToSection("galeria")}
+                    >
+                      Fotos
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="justify-start font-bold uppercase tracking-widest text-xs"
+                      onClick={() => goToSection("bloques")}
+                    >
+                      Bloques
+                    </Button>
+
+                    <div className="h-px bg-primary/10 my-2" />
+
                     {user && displayName && (
                       <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between">
                         <div>
@@ -262,10 +344,10 @@ export function Navigation() {
 
                     <nav className="flex flex-col gap-2">
                       <button 
-                        onClick={goToInfoSection}
+                        onClick={() => goToSection("info")}
                         className={cn(
                           "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left",
-                          isInfoActive 
+                          isSectionActive("#info") 
                             ? "bg-primary/15 text-foreground border border-primary/20" 
                             : "text-muted-foreground hover:bg-primary/5 hover:text-foreground"
                         )}

@@ -84,11 +84,11 @@ export function HeroSection() {
         </div>
 
         {/* Main Title */}
-        <h1 className="font-[family-name:var(--font-cinzel)] text-4xl md:text-6xl lg:text-7xl font-bold mb-4 tracking-wide">
-          <span className="text-gold-gradient">Vuelve a Casa.</span>
+        <h1 className="font-[family-name:var(--font-cinzel)] text-4xl md:text-6xl lg:text-7xl font-bold mb-4 tracking-wide uppercase">
+          <span className="text-gold-gradient">Morenada Huajsapata</span>
         </h1>
-        <h2 className="font-[family-name:var(--font-cinzel)] text-3xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-wide">
-          <span className="text-cyan-gradient">Vuelve a Huajsapata.</span>
+        <h2 className="font-[family-name:var(--font-cinzel)] text-xl md:text-2xl lg:text-3xl font-light mb-6 tracking-widest italic text-white/90">
+          Herencia que trasciende generaciones
         </h2>
         
         <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8 font-light">
