@@ -1,10 +1,11 @@
 import Image from "next/image"
-import { Check, Upload, X } from "lucide-react"
+import { Check, Upload, X, Loader2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function NewPaymentModal({
   isOpen,
@@ -18,7 +19,15 @@ export function NewPaymentModal({
   onDrop,
   onFileChange,
   onClearVoucher,
-  onSubmit
+  onSubmit,
+  isSubmitting,
+  submitError,
+  amount,
+  setAmount,
+  concept,
+  setConcept,
+  operationNumber,
+  setOperationNumber
 }: any) {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-background via-background to-transparent">
@@ -46,11 +55,16 @@ export function NewPaymentModal({
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Concepto</Label>
-                <Select defaultValue="cuota6">
+                <Select value={concept} onValueChange={setConcept}>
                   <SelectTrigger className="bg-primary/10 border-primary/30">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="cuota1">Cuota #1 - S/ 90</SelectItem>
+                    <SelectItem value="cuota2">Cuota #2 - S/ 90</SelectItem>
+                    <SelectItem value="cuota3">Cuota #3 - S/ 90</SelectItem>
+                    <SelectItem value="cuota4">Cuota #4 - S/ 90</SelectItem>
+                    <SelectItem value="cuota5">Cuota #5 - S/ 90</SelectItem>
                     <SelectItem value="cuota6">Cuota #6 - S/ 90</SelectItem>
                     <SelectItem value="cuota7">Cuota #7 - S/ 90</SelectItem>
                     <SelectItem value="adelanto">Adelanto de Cuotas</SelectItem>
@@ -64,6 +78,19 @@ export function NewPaymentModal({
                   type="number" 
                   placeholder="90.00" 
                   className="bg-primary/10 border-primary/30"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Número de Operación (Opcional)</Label>
+                <Input 
+                  type="text" 
+                  placeholder="Ej: 123456" 
+                  className="bg-primary/10 border-primary/30"
+                  value={operationNumber}
+                  onChange={(e) => setOperationNumber(e.target.value)}
                 />
               </div>
 
@@ -113,12 +140,27 @@ export function NewPaymentModal({
                 </div>
               </div>
 
+              {submitError && (
+                <Alert className="border-red-500/50 bg-red-500/10">
+                  <AlertDescription className="text-red-400">
+                    {submitError}
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Button 
                 onClick={onSubmit}
-                disabled={!voucherFile}
+                disabled={!voucherFile || isSubmitting}
                 className="w-full h-12 bg-accent hover:bg-accent/90 text-white font-bold"
               >
-                Enviar Reporte de Pago
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Subiendo...
+                  </>
+                ) : (
+                  'Enviar Reporte de Pago'
+                )}
               </Button>
             </div>
           )}

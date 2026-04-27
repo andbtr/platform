@@ -77,6 +77,24 @@ export default async function AdminPage() {
     estado: p.status || p.estado || 'pendiente'
   }))
 
+  // Fetch initial socios
+  const { data: sociosData } = await supabase
+    .from('members')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  const socios = (sociosData || []).map((s: any) => ({
+    id: s.id,
+    nombre: s.full_name || s.name || s.nombre || s.user_name || s.email,
+    dni: s.dni || s.document || '',
+    bloque: s.bloque || s.block || '',
+    estado: s.estado || s.status || 'al_dia',
+    montoPagado: s.monto_pagado || s.amount_paid || s.total_paid || 0,
+    email: s.email,
+    telefono: s.telefono || s.phone || '',
+    created_at: s.created_at
+  }))
+
   return (
     <>
       <div className="relative z-20">
@@ -86,7 +104,8 @@ export default async function AdminPage() {
       <div className="pt-16 md:pt-20">
         <AdminClientWrapper 
           initialPayments={payments} 
-          initialTotalCount={count} 
+          initialTotalCount={count}
+          initialSocios={socios}
         />
       </div>
     </>

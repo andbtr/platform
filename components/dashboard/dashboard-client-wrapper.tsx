@@ -25,10 +25,18 @@ export function DashboardClientWrapper({ initialSocio, initialPayments, user }: 
     isDragging,
     setIsDragging,
     paymentSubmitted,
+    isSubmitting,
+    submitError,
+    amount,
+    setAmount,
+    concept,
+    setConcept,
+    operationNumber,
+    setOperationNumber,
     handleFileChange,
     handleDrop,
     handleSubmitPayment
-  } = useDashboardState({ initialSocio, initialPayments })
+  } = useDashboardState({ initialSocio, initialPayments, user })
 
   return (
     <>
@@ -72,6 +80,14 @@ export function DashboardClientWrapper({ initialSocio, initialPayments, user }: 
         onFileChange={handleFileChange}
         onClearVoucher={() => { setVoucherFile(null); setVoucherPreview(null) }}
         onSubmit={handleSubmitPayment}
+        isSubmitting={isSubmitting}
+        submitError={submitError}
+        amount={amount}
+        setAmount={setAmount}
+        concept={concept}
+        setConcept={setConcept}
+        operationNumber={operationNumber}
+        setOperationNumber={setOperationNumber}
       />
     </>
   )

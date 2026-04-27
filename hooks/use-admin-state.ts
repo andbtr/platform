@@ -5,9 +5,10 @@ import { useSupabaseConfig } from "@/components/providers/supabase-provider"
 type UseAdminStateProps = {
   initialPayments: any[]
   initialTotalCount: number | null
+  initialSocios: any[]
 }
 
-export function useAdminState({ initialPayments, initialTotalCount }: UseAdminStateProps) {
+export function useAdminState({ initialPayments, initialTotalCount, initialSocios }: UseAdminStateProps) {
   const { accessToken } = useAuth()
   const { supabaseUrl, supabaseAnonKey } = useSupabaseConfig()
   
@@ -22,6 +23,7 @@ export function useAdminState({ initialPayments, initialTotalCount }: UseAdminSt
   const [page, setPage] = useState<number>(1)
   const [pageSize, setPageSize] = useState<number>(10)
   const [totalCount, setTotalCount] = useState<number | null>(initialTotalCount)
+  const [socios, setSocios] = useState<any[]>(initialSocios)
 
   const reloadPagos = async (opts: { pageNum?: number; pSize?: number; q?: string; s?: string }) => {
     setLoadingPagos(true)

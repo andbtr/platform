@@ -15,9 +15,10 @@ const VoucherModal = dynamic(() => import("@/components/admin/voucher-modal").th
 type AdminClientWrapperProps = {
   initialPayments: any[]
   initialTotalCount: number | null
+  initialSocios: any[]
 }
 
-export function AdminClientWrapper({ initialPayments, initialTotalCount }: AdminClientWrapperProps) {
+export function AdminClientWrapper({ initialPayments, initialTotalCount, initialSocios }: AdminClientWrapperProps) {
   const {
     searchTerm,
     selectedBloque,
@@ -43,7 +44,7 @@ export function AdminClientWrapper({ initialPayments, initialTotalCount }: Admin
     handleAprobarPago,
     handleRechazarPago,
     openVoucherModal
-  } = useAdminState({ initialPayments, initialTotalCount })
+  } = useAdminState({ initialPayments, initialTotalCount, initialSocios })
 
   return (
     <div className="min-h-screen bg-background">

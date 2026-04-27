@@ -20,6 +20,7 @@ export function Navigation() {
   const [currentHash, setCurrentHash] = useState("")
   const { user, signOut } = useAuth()
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const notificationCount = 0
 
   const displayName = (() => {
@@ -68,6 +69,14 @@ export function Navigation() {
     return () => window.removeEventListener("hashchange", updateHash)
   }, [pathname])
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50)
+    }
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
   const goToInfoSection = () => {
     setIsOpen(false)
 
@@ -81,7 +90,12 @@ export function Navigation() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-primary/20">
+    <header className={cn(
+      "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+      isScrolled 
+        ? "bg-background/80 backdrop-blur-xl border-b border-primary/20" 
+        : "bg-transparent border-b border-transparent"
+    )}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}

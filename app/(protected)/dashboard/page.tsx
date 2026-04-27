@@ -29,6 +29,28 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
+  // Check if user is admin - if so, redirect to admin panel
+  const meta = user.user_metadata ?? {}
+  let isAdmin = false
+
+  if (meta.is_admin || meta.isAdmin || meta.role === 'admin') {
+    isAdmin = true
+  } else {
+    const { data: memberData } = await supabase
+      .from('members')
+      .select('is_admin')
+      .eq('id', user.id)
+      .maybeSingle()
+      
+    if (memberData?.is_admin) {
+      isAdmin = true
+    }
+  }
+
+  if (isAdmin) {
+    redirect('/admin')
+  }
+
   const { data: memberRow } = await supabase
     .from("members")
     .select("*")
