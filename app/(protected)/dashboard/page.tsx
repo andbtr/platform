@@ -33,21 +33,31 @@ export default async function DashboardPage() {
   const meta = user.user_metadata ?? {}
   let isAdmin = false
 
+  console.log("Dashboard - Checking admin for user:", user.id)
+
   if (meta.is_admin || meta.isAdmin || meta.role === 'admin') {
     isAdmin = true
   } else {
-    const { data: memberData } = await supabase
-      .from('members')
-      .select('is_admin')
-      .eq('id', user.id)
+    // Intentar consulta directa a la tabla roles
+    const { data: roleData, error: roleError } = await supabase
+      .from('roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
       .maybeSingle()
       
-    if (memberData?.is_admin) {
+    if (roleError) {
+      console.error("Dashboard - Role check error:", roleError)
+    }
+    
+    if (roleData) {
+      console.log("Dashboard - Admin role found in DB")
       isAdmin = true
     }
   }
 
   if (isAdmin) {
+    console.log("Dashboard - Redirecting to /admin")
     redirect('/admin')
   }
 
@@ -57,8 +67,11 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single()
 
-  let resolvedMemberId = memberRow?.id ?? null
   let memberDetails = memberRow
+
+  // USAR EL ID DE AUTH DIRECTAMENTE PARA PAGOS
+  // Para asegurar que coincida con la política RLS (user_id = auth.uid())
+  const authUserId = user.id
 
   // Calcular el monto mensual basado en el precio del bloque y cuotas iniciales
   const precioBloque = memberDetails?.blocks?.total_price || memberDetails?.blocks?.price || 0
@@ -70,15 +83,18 @@ export default async function DashboardPage() {
 
   let initialPayments: any[] = []
 
-  if (resolvedMemberId) {
-    const { data: pagos } = await supabase
+  if (authUserId) {
+    const { data: pagos, error: pagosError } = await supabase
       .from("payments")
       .select("*")
-      .eq("member_id", resolvedMemberId)
-      .is("deleted_at", null)
+      .eq("user_id", authUserId)
       .order("created_at", { ascending: false })
       .range(start, start + pageSize - 1)
 
+    if (pagosError) {
+      console.error("Error fetching initial payments:", pagosError)
+    }
+    
     initialPayments = pagos ?? []
   }
 

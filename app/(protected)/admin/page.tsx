@@ -28,9 +28,10 @@ export default async function AdminPage() {
   })
 
   // Verify admin status
-  const { data: userData, error: userError } = await supabase.auth.getUser(token)
+  const { data: userData, error: userError } = await supabase.auth.getUser()
   
   if (userError || !userData.user) {
+    console.error("Auth error:", userError)
     redirect('/login')
   }
 
@@ -38,60 +39,89 @@ export default async function AdminPage() {
   const meta = user.user_metadata ?? {}
   let isAuthorized = false
 
+  // Log para depuración
+  console.log("Checking admin for user:", user.id)
+
   if (meta.is_admin || meta.isAdmin || meta.role === 'admin') {
     isAuthorized = true
   } else {
-    const { data: memberData } = await supabase
-      .from('members')
-      .select('is_admin')
-      .eq('id', user.id)
+    const { data: roleData, error: roleError } = await supabase
+      .from('roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
       .maybeSingle()
-      
-    if (memberData?.is_admin) {
+    
+    if (roleError) console.error("Role check error:", roleError)
+    if (roleData) {
       isAuthorized = true
     }
   }
+
+  console.log("Is authorized:", isAuthorized)
 
   if (!isAuthorized) {
     redirect('/')
   }
 
-  // Fetch initial payments
+  // Fetch initial payments - only pending ones
   const pageSize = 10
-  const { data: paymentsData, count } = await supabase
+  const { data: paymentsData, count: totalPendingCount } = await supabase
     .from('payments')
     .select('*', { count: 'exact' })
+    .eq('status', 'PENDING')
     .order('created_at', { ascending: false })
     .range(0, pageSize - 1)
 
-  const payments = (paymentsData || []).map((p: any) => ({
-    id: p.id,
-    socioId: p.user_id || p.userId || p.socio_id,
-    nombre: p.name || p.full_name || p.nombre || p.user_name || p.email,
-    dni: p.dni || p.document || '',
-    bloque: p.bloque || p.block || '',
-    monto: p.amount_paid || p.amount || p.monto || 0,
-    concepto: p.concept || p.concepto || p.description || 'Pago',
-    fecha: p.created_at || p.fecha || p.inserted_at,
-    voucherUrl: p.voucher_url || p.voucher || p.voucherUrl || '/images/voucher-sample.jpg',
-    estado: p.status || p.estado || 'pendiente'
-  }))
+  // Get total count of all payments for pagination calculations
+  const { count: totalAllCount } = await supabase
+    .from('payments')
+    .select('*', { count: 'exact', head: true })
 
   // Fetch initial socios
   const { data: sociosData } = await supabase
     .from('members')
-    .select('*')
+    .select('*, blocks(name)')
     .order('created_at', { ascending: false })
+
+  const payments = (paymentsData || []).map((p: any) => {
+    // Intentar diferentes campos de relación
+    const possibleUserIds = [p.user_id, p.userId, p.member_id, p.memberId, p.socio_id, p.socioId]
+    const userId = possibleUserIds.find(id => id !== undefined && id !== null)
+    
+    // Buscar el miembro con comparación robusta de IDs usando la data cruda
+    const member = (sociosData || []).find((s: any) => 
+      (s.id && userId && String(s.id).toLowerCase() === String(userId).toLowerCase())
+    )
+    
+    // Pasamos proof_url directamente, la URL firmada se genera en el componente
+    const paymentProofUrl = null
+
+    return {
+      id: p.id,
+      socioId: userId,
+      nombre: member?.full_name || `${member?.first_name || ""} ${member?.last_name || ""}`.trim() || p.name || 'Usuario',
+      dni: member?.dni || '',
+      bloque: member?.blocks?.name || member?.block_id || '',
+      monto: p.amount_paid || 0,
+      concepto: p.concept || p.description || 'Pago',
+      fecha: p.created_at,
+      paymentProofUrl: paymentProofUrl,
+      proofUrl: p.proof_url,
+      hasPaymentProof: Boolean(paymentProofUrl || p.proof_url),
+      estado: p.status || 'PENDING'
+    }
+  })
 
   const socios = (sociosData || []).map((s: any) => ({
     id: s.id,
-    nombre: s.full_name || s.name || s.nombre || s.user_name || s.email,
-    dni: s.dni || s.document || '',
-    bloque: s.bloque || s.block || '',
-    estado: s.estado || s.status || 'al_dia',
+    nombre: s.full_name || `${s.first_name || ""} ${s.last_name || ""}`.trim() || s.email,
+    dni: s.dni || '',
+    bloque: s.blocks?.name || s.block_id || '',
+    estado: s.status === 'active' || s.status === 'al_dia' ? 'al_dia' : 'atrasado',
     montoPagado: s.monto_pagado || s.amount_paid || s.total_paid || 0,
     email: s.email,
-    telefono: s.telefono || s.phone || '',
+    telefono: s.phone_number || s.phone || '',
     created_at: s.created_at
   }))
 
@@ -104,7 +134,7 @@ export default async function AdminPage() {
       <div className="pt-16 md:pt-20">
         <AdminClientWrapper 
           initialPayments={payments} 
-          initialTotalCount={count}
+          initialTotalCount={totalPendingCount}
           initialSocios={socios}
         />
       </div>

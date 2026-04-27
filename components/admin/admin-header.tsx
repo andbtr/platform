@@ -25,7 +25,7 @@ export function AdminHeader() {
               </div>
             </Link>
             <nav className="hidden md:flex items-center gap-6 border-l border-primary/20 pl-6">
-              <Link href="/admin" className="text-sm font-medium text-foreground">Mi panel</Link>
+              {/* Panel de administración - sin enlaces adicionales */}
             </nav>
           </div>
           <div className="flex items-center gap-3">
@@ -51,7 +51,7 @@ export function AdminHeader() {
                     <SheetTitle>Menú Administrador</SheetTitle>
                   </SheetHeader>
                   <nav className="flex flex-col gap-4 mt-8">
-                    <Link href="/admin" className="text-lg font-medium">Mi panel</Link>
+                    {/* Panel de administración - sin enlaces adicionales */}
                     <div className="h-px bg-border my-4" />
                     <Link href="/profile">
                       <Button variant="outline" className="w-full justify-start border-primary/30">

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useSupabase } from "@/components/providers/supabase-provider"
 
-interface VoucherModalProps {
+interface PaymentProofModalProps {
   isOpen: boolean
   setIsOpen: (open: boolean) => void
   selectedPago: any
@@ -20,27 +20,27 @@ export function PaymentProofModal({
   selectedPago,
   handleAprobarPago,
   handleRechazarPago
-}: VoucherModalProps) {
-  const [voucherUrl, setVoucherUrl] = useState<string | null>(null)
-  const [loadingVoucher, setLoadingVoucher] = useState(false)
+}: PaymentProofModalProps) {
+  const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null)
+  const [loadingPaymentProof, setLoadingPaymentProof] = useState(false)
   const supabase = useSupabase()
 
   useEffect(() => {
-    if (isOpen && selectedPago?.proofUrl && !selectedPago.voucherUrl) {
+    if (isOpen && selectedPago?.proofUrl && !selectedPago.paymentProofUrl) {
       // Si no tenemos URL pre-generada, generamos una firmada
       generateSignedUrl()
-    } else if (selectedPago?.voucherUrl) {
+    } else if (selectedPago?.paymentProofUrl) {
       // Si ya tenemos la URL, la usamos directamente
-      setVoucherUrl(selectedPago.voucherUrl)
+      setPaymentProofUrl(selectedPago.paymentProofUrl)
     } else {
-      setVoucherUrl(null)
+      setPaymentProofUrl(null)
     }
   }, [isOpen, selectedPago])
 
   const generateSignedUrl = async () => {
     if (!selectedPago?.proofUrl || !supabase) return
     
-    setLoadingVoucher(true)
+    setLoadingPaymentProof(true)
     try {
       const { data, error } = await supabase.storage
         .from('payment-proofs')
@@ -48,15 +48,15 @@ export function PaymentProofModal({
       
       if (error) throw error
       if (data?.signedUrl) {
-        setVoucherUrl(data.signedUrl)
+        setPaymentProofUrl(data.signedUrl)
       }
     } catch (err) {
       console.error("Error generating signed URL:", err)
-      setVoucherUrl(null)
+      setPaymentProofUrl(null)
       // Mostrar mensaje de error al usuario
-      alert("No se pudo cargar el voucher. Es posible que el archivo haya sido eliminado o no exista.")
+      alert("No se pudo cargar el comprobante. Es posible que el archivo haya sido eliminado o no exista.")
     } finally {
-      setLoadingVoucher(false)
+      setLoadingPaymentProof(false)
     }
   }
 
@@ -64,7 +64,7 @@ export function PaymentProofModal({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="glass-card border-primary/30 max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-serif text-foreground">Verificar Voucher</DialogTitle>
+          <DialogTitle className="text-2xl font-serif text-foreground">Verificar Comprobante</DialogTitle>
           <DialogDescription>
             Revisa el comprobante de pago adjunto para verificar la transacción.
           </DialogDescription>
@@ -101,23 +101,23 @@ export function PaymentProofModal({
               )}
             </div>
 
-            {/* Voucher Image */}
+            {/* Payment Proof Image */}
             <div className="aspect-[3/4] bg-muted rounded-xl flex items-center justify-center border border-primary/20 overflow-hidden relative">
-              {loadingVoucher ? (
+              {loadingPaymentProof ? (
                 <div className="flex flex-col items-center justify-center">
                   <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
-                  <p className="text-sm text-muted-foreground">Cargando voucher...</p>
+                  <p className="text-sm text-muted-foreground">Cargando comprobante...</p>
                 </div>
-              ) : voucherUrl ? (
+              ) : paymentProofUrl ? (
                 <img 
-                  src={voucherUrl} 
-                  alt="Voucher de pago" 
+                  src={paymentProofUrl} 
+                  alt="Comprobante de pago" 
                   className="w-full h-full object-contain"
                 />
               ) : (
                 <div className="text-center p-8">
                   <CreditCard className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">Este pago no tiene voucher adjunto</p>
+                  <p className="text-muted-foreground">Este pago no tiene comprobante adjunto</p>
                 </div>
               )}
             </div>

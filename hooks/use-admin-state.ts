@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSupabaseConfig } from "@/components/providers/supabase-provider"
+import { createClient } from "@supabase/supabase-js"
 
 type UseAdminStateProps = {
   initialPayments: any[]
@@ -12,11 +13,16 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
   const { accessToken } = useAuth()
   const { supabaseUrl, supabaseAnonKey } = useSupabaseConfig()
   
+  console.log('useAdminState inicializado con:', { 
+    initialPaymentsCount: initialPayments.length, 
+    initialSociosCount: initialSocios.length 
+  })
+  
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedBloque, setSelectedBloque] = useState<string>("todos")
-  const [selectedStatus, setSelectedStatus] = useState<string>('todos')
+  const [selectedStatus, setSelectedStatus] = useState<string>('PENDING')
   const [selectedPago, setSelectedPago] = useState<any | null>(null)
-  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false)
+  const [isPaymentProofModalOpen, setIsPaymentProofModalOpen] = useState(false)
   const [pagosPendientes, setPagosPendientes] = useState<any[]>(initialPayments)
   const [loadingPagos, setLoadingPagos] = useState(false)
   const [pagosError, setPagosError] = useState<string | null>(null)
@@ -51,8 +57,10 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
       
       const status = opts.s ?? selectedStatus
       if (status && status !== 'todos') restParams.set('status', `eq.${status}`)
+      console.log('Parámetros de consulta:', { status, q, p, ps, restParams: restParams.toString() })
 
       const restUrl = `${supabaseUrl.replace(/\/$/, '')}/rest/v1/payments?${restParams.toString()}`
+      console.log('URL completa:', restUrl)
       const res = await fetch(restUrl, { headers })
       
       if (!res.ok) {
@@ -66,21 +74,55 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
       
       const body = await res.json()
       const payments = Array.isArray(body) ? body : (Array.isArray(body.payments) ? body.payments : [])
+      console.log('Pagos obtenidos de la API:', payments.length, payments.map(p => ({ id: p.id, user_id: p.user_id, status: p.status })))
       
-      const mapped = payments.map((p: any) => ({
-        id: p.id,
-        socioId: p.user_id || p.userId || p.socio_id,
-        nombre: p.name || p.full_name || p.nombre || p.user_name || p.email,
-        dni: p.dni || p.document || '',
-        bloque: p.bloque || p.block || '',
-        monto: p.amount_paid || p.amount || p.monto || 0,
-        concepto: p.concept || p.concepto || p.description || 'Pago',
-        fecha: p.created_at || p.fecha || p.inserted_at,
-        additionalCode: p.adittional_code || '',
-        bankAccountName: p.bank_account_name || '',
-        voucherUrl: p.voucher_url || p.voucher || p.voucherUrl || '/images/voucher-sample.jpg',
-        estado: p.status || p.estado || 'pendiente'
-      }))
+      // Client for storage URLs
+      const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+      const mapped = payments.map((p: any) => {
+        // Intentar diferentes campos de relación
+        const possibleUserIds = [p.user_id, p.userId, p.member_id, p.memberId, p.socio_id, p.socioId]
+        const userId = possibleUserIds.find(id => id !== undefined && id !== null)
+        
+        // Buscar el miembro con comparación robusta de IDs
+        const member = socios.find((s: any) => 
+          (s.id && userId && String(s.id).toLowerCase() === String(userId).toLowerCase()) ||
+          (s.user_id && userId && String(s.user_id).toLowerCase() === String(userId).toLowerCase())
+        )
+        
+        console.log('Mapeando pago:', { 
+          pagoId: p.id, 
+          userId: userId,
+          memberFound: !!member, 
+          memberData: member ? { id: member.id, nombre: member.nombre } : null
+        })
+
+        // Pasamos proof_url directamente, la URL firmada se genera en el componente
+        const paymentProofUrl = null
+        const proofUrl = p.proof_url
+
+        const estado = p.status || p.estado || 'PENDING'
+
+        return {
+          id: p.id,
+          socioId: userId,
+          nombre: member?.nombre || member?.full_name || p.name || 'Usuario',
+          dni: member?.dni || '',
+          bloque: member?.bloque || member?.blocks?.name || '',
+          monto: p.amount_paid || 0,
+          concepto: p.concept || p.description || 'Pago',
+          fecha: p.created_at,
+          additionalCode: p.adittional_code || '',
+          bankAccountName: p.bank_account_name || '',
+          paymentProofUrl: paymentProofUrl,
+          proofUrl: proofUrl,
+          hasPaymentProof: Boolean(proofUrl),
+          estado: estado
+        }
+      })
+
+      console.log('Pagos mapeados:', mapped.length, 'pagos')
+      console.log('Filtro aplicado:', status)
 
       setPagosPendientes(mapped)
       if (count === null) {
@@ -120,21 +162,86 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
     reloadPagos({ pageNum: 1, pSize: size })
   }
 
-  const handleAprobarPago = (pagoId: number) => {
-    setPagosPendientes(prev => prev.filter(p => p.id !== pagoId))
-    setIsVoucherModalOpen(false)
-    setSelectedPago(null)
+  const handleAprobarPago = async (pagoId: number) => {
+    console.log('Aprobando pago:', pagoId)
+    try {
+      if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase no configurado')
+      const token = accessToken
+      console.log('Token disponible:', !!token)
+      const headers: Record<string,string> = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+      headers['apikey'] = supabaseAnonKey
+      headers['Content-Type'] = 'application/json'
+      headers['Prefer'] = 'return=representation'
+
+      const url = `${supabaseUrl.replace(/\/$/, '')}/rest/v1/payments?id=eq.${pagoId}`
+      console.log('URL de la petición:', url)
+
+      const res = await fetch(url, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ status: 'APPROVED' })
+      })
+
+      console.log('Respuesta del servidor:', res.status, res.statusText)
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        console.error('Error response:', errorText)
+        throw new Error('Error al aprobar')
+      }
+
+      console.log('Pago aprobado exitosamente')
+      setPagosPendientes(prev => prev.filter(p => p.id !== pagoId))
+      setIsPaymentProofModalOpen(false)
+      setSelectedPago(null)
+    } catch (err) {
+      console.error('Error en handleAprobarPago:', err)
+      alert('No se pudo aprobar el pago')
+    }
   }
 
-  const handleRechazarPago = (pagoId: number) => {
-    setPagosPendientes(prev => prev.filter(p => p.id !== pagoId))
-    setIsVoucherModalOpen(false)
-    setSelectedPago(null)
+  const handleRechazarPago = async (pagoId: number) => {
+    console.log('Rechazando pago:', pagoId)
+    try {
+      if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase no configurado')
+      const token = accessToken
+      console.log('Token disponible:', !!token)
+      const headers: Record<string,string> = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+      headers['apikey'] = supabaseAnonKey
+      headers['Content-Type'] = 'application/json'
+
+      const url = `${supabaseUrl.replace(/\/$/, '')}/rest/v1/payments?id=eq.${pagoId}`
+      console.log('URL de la petición:', url)
+
+      const res = await fetch(url, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ status: 'REJECTED' })
+      })
+
+      console.log('Respuesta del servidor:', res.status, res.statusText)
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        console.error('Error response:', errorText)
+        throw new Error('Error al rechazar')
+      }
+
+      console.log('Pago rechazado exitosamente')
+      setPagosPendientes(prev => prev.filter(p => p.id !== pagoId))
+      setIsPaymentProofModalOpen(false)
+      setSelectedPago(null)
+    } catch (err) {
+      console.error('Error en handleRechazarPago:', err)
+      alert('No se pudo rechazar el pago')
+    }
   }
 
-  const openVoucherModal = (pago: any) => {
+  const openPaymentProofModal = (pago: any) => {
     setSelectedPago(pago)
-    setIsVoucherModalOpen(true)
+    setIsPaymentProofModalOpen(true)
   }
 
   const totalSocios = socios.length
@@ -157,8 +264,8 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
     setSelectedBloque,
     selectedStatus,
     selectedPago,
-    isVoucherModalOpen,
-    setIsVoucherModalOpen,
+    isPaymentProofModalOpen,
+    setIsPaymentProofModalOpen,
     pagosPendientes,
     loadingPagos,
     pagosError,
@@ -177,6 +284,6 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
     handlePageSizeChange,
     handleAprobarPago,
     handleRechazarPago,
-    openVoucherModal
+    openPaymentProofModal
   }
 }

@@ -18,10 +18,10 @@ export function DashboardClientWrapper({ initialSocio, initialPayments, user }: 
     paymentsError,
     isPaymentModalOpen,
     setIsPaymentModalOpen,
-    voucherFile,
-    setVoucherFile,
-    voucherPreview,
-    setVoucherPreview,
+    paymentProofFile,
+    setPaymentProofFile,
+    paymentProofPreview,
+    setPaymentProofPreview,
     isDragging,
     setIsDragging,
     paymentSubmitted,
@@ -96,14 +96,14 @@ export function DashboardClientWrapper({ initialSocio, initialPayments, user }: 
         isOpen={isPaymentModalOpen}
         onOpenChange={setIsPaymentModalOpen}
         paymentSubmitted={paymentSubmitted}
-        voucherPreview={voucherPreview}
-        voucherFile={voucherFile}
+        paymentProofPreview={paymentProofPreview}
+        paymentProofFile={paymentProofFile}
         isDragging={isDragging}
         onDragOver={(e: React.DragEvent) => { e.preventDefault(); setIsDragging(true) }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         onFileChange={handleFileChange}
-        onClearVoucher={() => { setVoucherFile(null); setVoucherPreview(null) }}
+        onClearPaymentProof={() => { setPaymentProofFile(null); setPaymentProofPreview(null) }}
         onSubmit={handleSubmitPayment}
         isSubmitting={isSubmitting}
         submitError={submitError}

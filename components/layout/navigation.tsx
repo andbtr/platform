@@ -53,8 +53,13 @@ export function Navigation() {
       }
 
       try {
-        const { data } = await supabase.from('members').select('is_admin').eq('id', user.id).maybeSingle()
-        if (mounted) setIsAdmin(Boolean(data?.is_admin))
+        const { data } = await supabase
+          .from('roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle()
+        if (mounted) setIsAdmin(!!data)
       } catch {
         if (mounted) setIsAdmin(false)
       }
@@ -195,13 +200,13 @@ export function Navigation() {
                 </Button>
               )}
 
-              {user ? (
+              {user && !isAdmin ? (
                 <Link href="/dashboard">
                   <Button className="bg-primary/20 hover:bg-primary/30 text-foreground font-bold">
                     Mi Panel
                   </Button>
                 </Link>
-              ) : (
+              ) : !user ? (
                 <Link href="/inscription">
                   <Button className={cn(
                     "bg-accent hover:bg-accent/90 text-white font-bold",
@@ -210,7 +215,7 @@ export function Navigation() {
                     Inscribirme
                   </Button>
                 </Link>
-              )}
+              ) : null}
 
               {user ? (
                 <>

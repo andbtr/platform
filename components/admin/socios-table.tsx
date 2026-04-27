@@ -39,10 +39,9 @@ export function SociosTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos los bloques</SelectItem>
+            <SelectItem value="Cholitas">Cholitas</SelectItem>
             <SelectItem value="Morenos">Morenos</SelectItem>
-            <SelectItem value="Chinas">Chinas</SelectItem>
-            <SelectItem value="Sajamas">Sajamas</SelectItem>
-            <SelectItem value="Achachis">Achachis</SelectItem>
+            <SelectItem value="Osos">Osos</SelectItem>
           </SelectContent>
         </Select>
       </div>

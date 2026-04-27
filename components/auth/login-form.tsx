@@ -37,8 +37,30 @@ export default function LoginForm() {
         return
       }
 
+      const { data: { user } } = await supabase.auth.getUser()
+      const meta = user?.user_metadata ?? {}
+      let isAdmin = false
+
+      if (meta.is_admin || meta.isAdmin || meta.role === 'admin') {
+        isAdmin = true
+      } else {
+        const { data: roleData } = await supabase
+          .from('roles')
+          .select('role')
+          .eq('user_id', user?.id)
+          .eq('role', 'admin')
+          .maybeSingle()
+        
+        if (roleData) isAdmin = true
+      }
+
       toast({ title: '¡Bienvenido!', description: 'Has iniciado sesión correctamente.' })
-      router.push('/dashboard')
+      
+      if (isAdmin) {
+        router.push('/admin')
+      } else {
+        router.push('/dashboard')
+      }
     } catch (err: any) {
       setLoading(false)
       const message = err?.message ?? 'Error desconocido'

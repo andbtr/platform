@@ -6,8 +6,8 @@ import { createSupabaseClient } from "@/lib/supabase"
 export function useDashboardState({ initialSocio, initialPayments, user }: { initialSocio: any; initialPayments: any[]; user: any }) {
   const { supabaseUrl, supabaseAnonKey } = useSupabaseConfig()
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
-  const [voucherFile, setVoucherFile] = useState<File | null>(null)
-  const [voucherPreview, setVoucherPreview] = useState<string | null>(null)
+  const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null)
+  const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [paymentSubmitted, setPaymentSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -113,11 +113,13 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
       const { data, error } = await supabase
         .from("payments")
         .select("*")
-        .eq("member_id", user.id)
-        .is("deleted_at", null)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
       
-      if (error) throw error
+      if (error) {
+        console.error("Fetch payments error:", error)
+        throw error
+      }
       setPayments(data || [])
     } catch (err: any) {
       setPaymentsError(err.message)
@@ -140,7 +142,7 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
           event: '*',
           schema: 'public',
           table: 'payments',
-          filter: `member_id=eq.${user.id}`
+          filter: `user_id=eq.${user.id}`
         },
         () => {
           fetchPayments()
@@ -156,9 +158,9 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setVoucherFile(file)
+      setPaymentProofFile(file)
       const reader = new FileReader()
-      reader.onload = (e) => setVoucherPreview(e.target?.result as string)
+      reader.onload = (e) => setPaymentProofPreview(e.target?.result as string)
       reader.readAsDataURL(file)
     }
   }
@@ -168,15 +170,15 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
     setIsDragging(false)
     const file = e.dataTransfer.files[0]
     if (file && file.type.startsWith("image/")) {
-      setVoucherFile(file)
+      setPaymentProofFile(file)
       const reader = new FileReader()
-      reader.onload = (e) => setVoucherPreview(e.target?.result as string)
+      reader.onload = (e) => setPaymentProofPreview(e.target?.result as string)
       reader.readAsDataURL(file)
     }
   }
 
   const handleSubmitPayment = async () => {
-    if (!voucherFile || !user) return
+    if (!paymentProofFile || !user) return
 
     if (!bankAccountName.trim()) {
       setSubmitError("El nombre de la cuenta bancaria es obligatorio")
@@ -217,13 +219,13 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
 
     try {
       // Validar que sea imagen
-      if (!voucherFile.type.startsWith('image/')) {
+      if (!paymentProofFile.type.startsWith('image/')) {
         throw new Error('El archivo debe ser una imagen')
       }
 
       // Validar tamaño máximo 2MB
       const maxSize = 2 * 1024 * 1024 // 2MB
-      if (voucherFile.size > maxSize) {
+      if (paymentProofFile.size > maxSize) {
         throw new Error('La imagen debe ser menor a 2MB')
       }
 
@@ -235,14 +237,14 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
       const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
 
       // Generar path exacto: payments/{user.id}/{uuid}
-      const fileExtension = voucherFile.name.split('.').pop()
+      const fileExtension = paymentProofFile.name.split('.').pop()
       const fileName = `${uuidv4()}.${fileExtension}`
       const filePath = `payments/${user.id}/${fileName}`
 
       // Subir archivo a Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('payment-proofs')
-        .upload(filePath, voucherFile, {
+        .upload(filePath, paymentProofFile, {
           cacheControl: '3600',
           upsert: false
         })
@@ -262,7 +264,7 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
       const { error: insertError } = await supabase
         .from('payments')
         .insert({
-          member_id: user.id,
+          user_id: user.id,
           amount_paid: parseFloat(amount),
           installment_number: installmentNumber,
           adittional_code: additionalCode || null,
@@ -286,8 +288,8 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
       setTimeout(() => {
         setIsPaymentModalOpen(false)
         setPaymentSubmitted(false)
-        setVoucherFile(null)
-        setVoucherPreview(null)
+        setPaymentProofFile(null)
+        setPaymentProofPreview(null)
         setAdditionalCode("")
         setBankAccountName("")
         setPaymentDate(new Date().toISOString().split('T')[0])
@@ -312,10 +314,10 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
     paymentsError,
     isPaymentModalOpen,
     setIsPaymentModalOpen,
-    voucherFile,
-    setVoucherFile,
-    voucherPreview,
-    setVoucherPreview,
+    paymentProofFile,
+    setPaymentProofFile,
+    paymentProofPreview,
+    setPaymentProofPreview,
     isDragging,
     setIsDragging,
     paymentSubmitted,
@@ -333,8 +335,6 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
     setPaymentDate,
     cuotasTotalesCalculadas,
     nextInstallmentNumber: nextInstallmentNumberValue,
-    saldoPendiente,
-    progresoPago,
     handleFileChange,
     handleDrop,
     handleSubmitPayment

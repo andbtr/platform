@@ -10,7 +10,7 @@ import dynamic from "next/dynamic"
 
 const PaymentsTable = dynamic(() => import("@/components/admin/payments-table").then(mod => mod.PaymentsTable))
 const SociosTable = dynamic(() => import("@/components/admin/socios-table").then(mod => mod.SociosTable))
-const VoucherModal = dynamic(() => import("@/components/admin/voucher-modal").then(mod => mod.VoucherModal))
+const PaymentProofModal = dynamic(() => import("@/components/admin/payment-proof-modal").then(mod => mod.PaymentProofModal))
 
 type AdminClientWrapperProps = {
   initialPayments: any[]
@@ -25,8 +25,8 @@ export function AdminClientWrapper({ initialPayments, initialTotalCount, initial
     setSelectedBloque,
     selectedStatus,
     selectedPago,
-    isVoucherModalOpen,
-    setIsVoucherModalOpen,
+    isPaymentProofModalOpen,
+    setIsPaymentProofModalOpen,
     pagosPendientes,
     loadingPagos,
     page,
@@ -43,7 +43,7 @@ export function AdminClientWrapper({ initialPayments, initialTotalCount, initial
     handlePageSizeChange,
     handleAprobarPago,
     handleRechazarPago,
-    openVoucherModal
+    openPaymentProofModal
   } = useAdminState({ initialPayments, initialTotalCount, initialSocios })
 
   return (
@@ -92,7 +92,7 @@ export function AdminClientWrapper({ initialPayments, initialTotalCount, initial
               handleStatusChange={handleStatusChange}
               handlePageSizeChange={handlePageSizeChange}
               goToPage={goToPage}
-              openVoucherModal={openVoucherModal}
+              openPaymentProofModal={openPaymentProofModal}
               handleAprobarPago={handleAprobarPago}
               handleRechazarPago={handleRechazarPago}
             />
@@ -110,9 +110,9 @@ export function AdminClientWrapper({ initialPayments, initialTotalCount, initial
         </Tabs>
       </main>
 
-      <VoucherModal 
-        isOpen={isVoucherModalOpen}
-        setIsOpen={setIsVoucherModalOpen}
+      <PaymentProofModal 
+        isOpen={isPaymentProofModalOpen}
+        setIsOpen={setIsPaymentProofModalOpen}
         selectedPago={selectedPago}
         handleAprobarPago={handleAprobarPago}
         handleRechazarPago={handleRechazarPago}

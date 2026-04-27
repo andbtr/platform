@@ -11,14 +11,14 @@ export function NewPaymentModal({
   isOpen,
   onOpenChange,
   paymentSubmitted,
-  voucherPreview,
-  voucherFile,
+  paymentProofPreview,
+  paymentProofFile,
   isDragging,
   onDragOver,
   onDragLeave,
   onDrop,
   onFileChange,
-  onClearVoucher,
+  onClearPaymentProof,
   onSubmit,
   isSubmitting,
   submitError,
@@ -159,7 +159,7 @@ export function NewPaymentModal({
               </div>
 
               <div className="space-y-2">
-                <Label>Voucher de Pago</Label>
+                <Label>Comprobante de Pago</Label>
                 <div
                   className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
                     isDragging ? "border-accent bg-accent/10" : "border-primary/30"
@@ -168,17 +168,17 @@ export function NewPaymentModal({
                   onDragLeave={onDragLeave}
                   onDrop={onDrop}
                 >
-                  {voucherPreview ? (
+                  {paymentProofPreview ? (
                     <div className="relative">
                       <Image
-                        src={voucherPreview}
-                        alt="Voucher"
+                        src={paymentProofPreview}
+                        alt="Comprobante"
                         width={200}
                         height={200}
                         className="mx-auto rounded-lg"
                       />
                       <button
-                        onClick={onClearVoucher}
+                        onClick={onClearPaymentProof}
                         className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center"
                       >
                         <X className="w-4 h-4 text-white" />
@@ -188,7 +188,7 @@ export function NewPaymentModal({
                     <>
                       <Upload className="w-10 h-10 mx-auto mb-2 text-muted-foreground" />
                       <p className="text-sm text-muted-foreground mb-2">
-                        Arrastra tu voucher aquí o
+                        Arrastra tu comprobante aquí o
                       </p>
                       <label className="cursor-pointer">
                         <span className="text-accent hover:underline">selecciona un archivo</span>
@@ -212,7 +212,7 @@ export function NewPaymentModal({
 
               <Button 
                 onClick={onSubmit}
-                disabled={!voucherFile || isSubmitting}
+                disabled={!paymentProofFile || isSubmitting}
                 className="w-full h-12 bg-accent hover:bg-accent/90 text-white font-bold"
               >
                 {isSubmitting ? (
