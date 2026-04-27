@@ -13,21 +13,14 @@ export function Footer() {
         <div className="grid md:grid-cols-3 gap-12 mb-12">
           {/* Logo & Description */}
           <div className="text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-              <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/huajsapata.png-ETs04yCnOGaA9a5tqHdj4RSxflUMNS.jpeg"
-                alt="Morenada Huajsapata"
-                width={80}
-                height={80}
-                loading="eager"
-                className="w-16 h-16 object-contain"
-              />
-              <div className="h-12 w-px bg-white/10" />
-              <div className="text-left">
-                <p className="text-[10px] text-white/40 uppercase tracking-tighter">Filial</p>
-                <p className="text-sm font-bold text-gold-gradient leading-none">LIMA</p>
-              </div>
-            </div>
+            <Image
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/huajsapata.png-ETs04yCnOGaA9a5tqHdj4RSxflUMNS.jpeg"
+              alt="Morenada Huajsapata"
+              width={100}
+              height={100}
+              loading="eager"
+              className="w-20 h-20 object-contain mx-auto md:mx-0 mb-4"
+            />
             <h3 className="font-[family-name:var(--font-cinzel)] text-xl font-bold text-gold-gradient mb-2">
               Morenada Huajsapata
             </h3>
@@ -62,7 +55,9 @@ export function Footer() {
             <h4 className="text-[#4FB8C4] font-semibold mb-4 uppercase tracking-wider text-sm">Síguenos</h4>
             <div className="flex items-center justify-center md:justify-end gap-4">
               <a
-                href="#"
+                href="https://www.facebook.com/share/1B18LMA55v/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-12 h-12 rounded-full glass flex items-center justify-center hover:bg-[#4FB8C4]/20 transition-all hover:scale-110"
               >
                 <Facebook className="w-5 h-5 text-white" />
