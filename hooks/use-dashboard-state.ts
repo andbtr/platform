@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { v4 as uuidv4 } from "uuid"
 import { useSupabaseConfig } from "@/components/providers/supabase-provider"
 import { createSupabaseClient } from "@/lib/supabase"
@@ -13,15 +13,52 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   
-  const [amount, setAmount] = useState<string>("90")
-  const [concept, setConcept] = useState<string>("cuota6")
-  const [operationNumber, setOperationNumber] = useState<string>("")
+  const [amount, setAmount] = useState<string>(initialSocio.montoMensual?.toString() || "90")
+  const [paymentDate, setPaymentDate] = useState<string>(new Date().toISOString().split('T')[0])
   
-  const [payments] = useState<any[]>(initialPayments || [])
-  const [paymentsLoading] = useState(false)
-  const [paymentsError] = useState<string | null>(null)
+  // Calcular cuotas totales basado en la fecha de registro hasta Febrero 2027
+  const calculateTotalInstallments = (regDate: string) => {
+    const start = new Date(regDate)
+    const end = new Date(2027, 1) // Febrero es mes 1 (0-indexed)
+    
+    let months = (end.getFullYear() - start.getFullYear()) * 12
+    months += end.getMonth() - start.getMonth()
+    
+    return Math.max(0, months + 1) // +1 para incluir el mes de febrero
+  }
+
+  const cuotasTotalesCalculadas = calculateTotalInstallments(initialSocio.registrationDate || new Date().toISOString())
   
-  const [socio] = useState<any>(initialSocio || {
+  const [concept, setConcept] = useState<string>("")
+  const [additionalCode, setAdditionalCode] = useState<string>("")
+  const [bankAccountName, setBankAccountName] = useState<string>("")
+  
+  const [payments, setPayments] = useState<any[]>(initialPayments || [])
+
+  // Sugerir la siguiente cuota basada en el dinero total pagado
+  const CUOTA_AMOUNT_SUGGEST = initialSocio.montoMensual || 90
+  const approvedPaymentsForSuggest = payments.filter((p: any) => {
+    const status = (p.status || p.estado || '').toLowerCase()
+    return status === 'aprobado' || status === 'approved' || p.approved === true
+  })
+  const totalPagadoAcumulado = approvedPaymentsForSuggest.reduce((acc, p) => acc + (p.amount_paid || 0), 0)
+  const nextInstallmentNumberValue = Math.floor(totalPagadoAcumulado / CUOTA_AMOUNT_SUGGEST) + 1
+  
+  const suggestedConcept = nextInstallmentNumberValue <= cuotasTotalesCalculadas 
+    ? `cuota${nextInstallmentNumberValue}`
+    : "adelanto"
+
+  // Sincronizar el concepto sugerido cuando cambien los pagos
+  useEffect(() => {
+    if (!concept) {
+      setConcept(suggestedConcept)
+    }
+  }, [suggestedConcept])
+
+  const [paymentsLoading, setPaymentsLoading] = useState(false)
+  const [paymentsError, setPaymentsError] = useState<string | null>(null)
+  
+  const [socio, setSocio] = useState<any>(initialSocio || {
     nombre: '',
     dni: '',
     bloque: '',
@@ -30,10 +67,88 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
     cuotasTotales: 0,
     cuotasPagadas: 0,
     proximoVencimiento: new Date().toISOString(),
+    registrationDate: '',
     historialPagos: []
   })
 
-  // The server component has already checked auth and fetched data.
+  // Actualizar estadísticas basadas en los pagos reales
+  useEffect(() => {
+    if (!payments) return
+
+    const approvedPayments = payments.filter(p => {
+      const status = (p.status || p.estado || '').toLowerCase()
+      return status === 'aprobado' || status === 'approved' || p.approved === true
+    })
+
+    const montoTotalPagado = approvedPayments.reduce((acc, p) => acc + (p.amount_paid || 0), 0)
+    
+    // Nueva lógica: Determinar cuotas pagadas basadas en el monto dinámico del socio
+    const CUOTA_AMOUNT = initialSocio.montoMensual || 90
+    const cuotasCompletas = Math.floor(montoTotalPagado / CUOTA_AMOUNT)
+    
+    // Calcular próximo vencimiento basado en las cuotas completas cubiertas por el dinero
+    const regDate = new Date(initialSocio.registrationDate || new Date())
+    const nextDueDate = new Date(regDate)
+    nextDueDate.setMonth(regDate.getMonth() + cuotasCompletas)
+
+    setSocio((prev: any) => ({
+      ...prev,
+      montoPagado: montoTotalPagado,
+      cuotasPagadas: cuotasCompletas, 
+      proximoVencimiento: nextDueDate.toISOString(),
+      cuotasTotales: cuotasTotalesCalculadas,
+      montoTotal: cuotasTotalesCalculadas * CUOTA_AMOUNT
+    }))
+  }, [payments, cuotasTotalesCalculadas, initialSocio.registrationDate, initialSocio.montoMensual])
+
+  const fetchPayments = async () => {
+    if (!user || !supabaseUrl || !supabaseAnonKey) return
+    
+    setPaymentsLoading(true)
+    try {
+      const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
+      const { data, error } = await supabase
+        .from("payments")
+        .select("*")
+        .eq("member_id", user.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+      
+      if (error) throw error
+      setPayments(data || [])
+    } catch (err: any) {
+      setPaymentsError(err.message)
+    } finally {
+      setPaymentsLoading(false)
+    }
+  }
+
+  // Escuchar cambios en tiempo real para estados (APPROVED, REJECTED)
+  useEffect(() => {
+    if (!user || !supabaseUrl || !supabaseAnonKey) return
+
+    const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
+
+    const channel = supabase
+      .channel('payment_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'payments',
+          filter: `member_id=eq.${user.id}`
+        },
+        () => {
+          fetchPayments()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user, supabaseUrl, supabaseAnonKey])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -59,6 +174,40 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
 
   const handleSubmitPayment = async () => {
     if (!voucherFile || !user) return
+
+    if (!bankAccountName.trim()) {
+      setSubmitError("El nombre de la cuenta bancaria es obligatorio")
+      return
+    }
+
+    if (!amount || parseFloat(amount) <= 0) {
+      setSubmitError("El monto debe ser mayor a 0")
+      return
+    }
+
+    if (!paymentDate) {
+      setSubmitError("La fecha de pago es obligatoria")
+      return
+    }
+
+    const selectedDate = new Date(paymentDate)
+    const today = new Date()
+    today.setHours(23, 59, 59, 999) // Permitir hasta el final del día de hoy
+
+    if (selectedDate > today) {
+      setSubmitError("No se permiten fechas futuras")
+      return
+    }
+
+    // Opcional: Limitar a 15 días atrás
+    const fifteenDaysAgo = new Date()
+    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15)
+    fifteenDaysAgo.setHours(0, 0, 0, 0)
+
+    if (selectedDate < fifteenDaysAgo) {
+      setSubmitError("La fecha de pago no puede ser mayor a 15 días de antigüedad")
+      return
+    }
 
     setIsSubmitting(true)
     setSubmitError(null)
@@ -113,7 +262,9 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
           member_id: user.id,
           amount_paid: parseFloat(amount),
           installment_number: installmentNumber,
-          operation_number: operationNumber || null,
+          adittional_code: additionalCode || null,
+          bank_account_name: bankAccountName,
+          payment_date: paymentDate,
           status: 'PENDING',
           proof_url: filePath,
           method: 'TRANSFER', // O el método que corresponda por defecto
@@ -127,12 +278,16 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
       }
 
       setPaymentSubmitted(true)
+      await fetchPayments()
+      
       setTimeout(() => {
         setIsPaymentModalOpen(false)
         setPaymentSubmitted(false)
         setVoucherFile(null)
         setVoucherPreview(null)
-        setOperationNumber("")
+        setAdditionalCode("")
+        setBankAccountName("")
+        setPaymentDate(new Date().toISOString().split('T')[0])
       }, 2000)
 
     } catch (error) {
@@ -167,8 +322,16 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
     setAmount,
     concept,
     setConcept,
-    operationNumber,
-    setOperationNumber,
+    additionalCode,
+    setAdditionalCode,
+    bankAccountName,
+    setBankAccountName,
+    paymentDate,
+    setPaymentDate,
+    cuotasTotalesCalculadas,
+    nextInstallmentNumber: nextInstallmentNumberValue,
+    saldoPendiente,
+    progresoPago,
     handleFileChange,
     handleDrop,
     handleSubmitPayment

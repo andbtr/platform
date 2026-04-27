@@ -53,7 +53,7 @@ export default async function DashboardPage() {
 
   const { data: memberRow } = await supabase
     .from("members")
-    .select("*")
+    .select("*, blocks(*)")
     .eq("id", user.id)
     .maybeSingle()
 
@@ -63,7 +63,7 @@ export default async function DashboardPage() {
   if (!resolvedMemberId && user.email) {
     const { data: memberByEmail } = await supabase
       .from("members")
-      .select("*")
+      .select("*, blocks(*)")
       .eq("email", user.email)
       .limit(1)
       .maybeSingle()
@@ -71,6 +71,11 @@ export default async function DashboardPage() {
     resolvedMemberId = memberByEmail?.id ?? resolvedMemberId
     memberDetails = memberByEmail ?? memberDetails
   }
+
+  // Calcular el monto mensual basado en el precio del bloque y cuotas iniciales
+  const precioBloque = memberDetails?.blocks?.price || 0
+  const cuotasRegistro = memberDetails?.total_installments || 1
+  const montoMensualCalculado = precioBloque > 0 ? (precioBloque / cuotasRegistro) : 90
 
   const start = 0
   const pageSize = 50
@@ -92,12 +97,14 @@ export default async function DashboardPage() {
   const initialSocio = {
     nombre: memberDetails ? `${memberDetails.first_name ?? ""} ${memberDetails.last_name ?? ""}`.trim() : "",
     dni: memberDetails?.dni ?? "",
-    bloque: memberDetails?.block_id ?? "",
-    montoTotal: memberDetails?.total_installments ?? 0,
-    montoPagado: 0,
-    cuotasTotales: memberDetails?.total_installments ?? 0,
-    cuotasPagadas: 0,
+    bloque: memberDetails?.blocks?.name ?? memberDetails?.blocks?.block_name ?? memberDetails?.block_id ?? "",
+    montoMensual: montoMensualCalculado, 
+    montoTotal: precioBloque,
+    montoPagado: initialPayments.filter(p => p.status === 'APPROVED' || p.status === 'approved' || p.status === 'APROBADO').reduce((acc, p) => acc + (p.amount_paid || 0), 0),
+    cuotasTotales: cuotasRegistro,
+    cuotasPagadas: Math.floor(initialPayments.filter(p => p.status === 'APPROVED' || p.status === 'approved' || p.status === 'APROBADO').reduce((acc, p) => acc + (p.amount_paid || 0), 0) / montoMensualCalculado),
     proximoVencimiento: new Date().toISOString(),
+    registrationDate: memberDetails?.created_at || new Date().toISOString(),
     historialPagos: [],
   }
 

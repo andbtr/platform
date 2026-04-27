@@ -43,6 +43,16 @@ export function VoucherModal({
                 <p className="text-xs text-muted-foreground">Monto</p>
                 <p className="font-bold text-accent">S/ {selectedPago.monto}</p>
               </div>
+              <div className="col-span-2">
+                <p className="text-xs text-muted-foreground">Nombre de Cuenta Bancaria</p>
+                <p className="font-medium text-foreground">{selectedPago.bankAccountName || 'No proporcionado'}</p>
+              </div>
+              {selectedPago.additionalCode && (
+                <div className="col-span-2">
+                  <p className="text-xs text-muted-foreground">Código Adicional</p>
+                  <p className="font-medium text-foreground">{selectedPago.additionalCode}</p>
+                </div>
+              )}
             </div>
 
             {/* Voucher Image Placeholder */}

@@ -23,7 +23,9 @@ export function PaymentHistory({ payments, paymentsLoading, paymentsError }: Pay
           payments.map((p: any) => {
             const date = new Date(p.created_at || p.fecha || p.date)
             const amount = p.amount_paid || p.amount || p.monto || p.total || 0
-            const status = p.status || p.estado || (p.approved ? 'aprobado' : 'pendiente')
+            const rawStatus = (p.status || p.estado || '').toLowerCase()
+            const isApproved = rawStatus === 'aprobado' || rawStatus === 'approved' || p.approved === true
+            const status = isApproved ? 'aprobado' : 'pendiente'
             const concept = p.concept || p.concepto || p.description || 'Pago'
             
             return (
@@ -43,6 +45,11 @@ export function PaymentHistory({ payments, paymentsLoading, paymentsError }: Pay
                     <p className="text-sm text-muted-foreground">
                       {date.toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
+                    {p.bank_account_name && (
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        Titular: {p.bank_account_name}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="text-right">

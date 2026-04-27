@@ -76,6 +76,8 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
         monto: p.amount_paid || p.amount || p.monto || 0,
         concepto: p.concept || p.concepto || p.description || 'Pago',
         fecha: p.created_at || p.fecha || p.inserted_at,
+        additionalCode: p.adittional_code || '',
+        bankAccountName: p.bank_account_name || '',
         voucherUrl: p.voucher_url || p.voucher || p.voucherUrl || '/images/voucher-sample.jpg',
         estado: p.status || p.estado || 'pendiente'
       }))

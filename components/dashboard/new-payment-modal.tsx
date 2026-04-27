@@ -26,9 +26,19 @@ export function NewPaymentModal({
   setAmount,
   concept,
   setConcept,
-  operationNumber,
-  setOperationNumber
+  additionalCode,
+  setAdditionalCode,
+  bankAccountName,
+  setBankAccountName,
+  paymentDate,
+  setPaymentDate,
+  cuotasTotalesCalculadas,
+  nextInstallmentNumber
 }: any) {
+  const handleSetToday = () => {
+    setPaymentDate(new Date().toISOString().split('T')[0])
+  }
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-background via-background to-transparent">
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -60,38 +70,92 @@ export function NewPaymentModal({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="cuota1">Cuota #1 - S/ 90</SelectItem>
-                    <SelectItem value="cuota2">Cuota #2 - S/ 90</SelectItem>
-                    <SelectItem value="cuota3">Cuota #3 - S/ 90</SelectItem>
-                    <SelectItem value="cuota4">Cuota #4 - S/ 90</SelectItem>
-                    <SelectItem value="cuota5">Cuota #5 - S/ 90</SelectItem>
-                    <SelectItem value="cuota6">Cuota #6 - S/ 90</SelectItem>
-                    <SelectItem value="cuota7">Cuota #7 - S/ 90</SelectItem>
+                    {Array.from({ length: cuotasTotalesCalculadas }, (_, i) => (
+                      <SelectItem key={i + 1} value={`cuota${i + 1}`}>
+                        Cuota #{i + 1} - S/ 90 {nextInstallmentNumber === i + 1 && "(Sugerido)"}
+                      </SelectItem>
+                    ))}
                     <SelectItem value="adelanto">Adelanto de Cuotas</SelectItem>
+                    <SelectItem value="otro">Otro concepto</SelectItem>
                   </SelectContent>
                 </Select>
+                {nextInstallmentNumber <= cuotasTotalesCalculadas && concept !== `cuota${nextInstallmentNumber}` ? (
+                  <p className="text-[10px] text-yellow-500 mt-1 italic leading-tight">
+                    Nota: Según tus registros, te corresponde pagar la Cuota #{nextInstallmentNumber}.
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-muted-foreground leading-tight mt-1">
+                    Selecciona el número de cuota o concepto que estás pagando.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label>Monto</Label>
+                <Label>Monto (Obligatorio)</Label>
                 <Input 
                   type="number" 
                   placeholder="90.00" 
                   className="bg-primary/10 border-primary/30"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
+                  required
                 />
+                <p className="text-[10px] text-muted-foreground leading-tight">
+                  Ingresa el monto exacto que figura en tu voucher (en Soles).
+                </p>
               </div>
 
               <div className="space-y-2">
-                <Label>Número de Operación (Opcional)</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Fecha en que realizaste el pago</Label>
+                  <button 
+                    type="button"
+                    onClick={handleSetToday}
+                    className="text-xs text-accent hover:underline font-medium"
+                  >
+                    Usar fecha de hoy
+                  </button>
+                </div>
+                <Input 
+                  type="date" 
+                  className="bg-primary/10 border-primary/30"
+                  value={paymentDate}
+                  onChange={(e) => setPaymentDate(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  required
+                />
+                <p className="text-[10px] text-muted-foreground leading-tight">
+                  Selecciona la fecha que aparece en tu comprobante. Si acabas de pagar, puedes usar la fecha de hoy.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Nombre del titular de la cuenta de origen (Obligatorio)</Label>
+                <Input 
+                  type="text" 
+                  placeholder="Ej: Juan Pérez" 
+                  className="bg-primary/10 border-primary/30"
+                  value={bankAccountName}
+                  onChange={(e) => setBankAccountName(e.target.value)}
+                  required
+                />
+                <p className="text-[10px] text-muted-foreground leading-tight">
+                  Nombre de la persona o entidad desde la cual se realizó la transferencia.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Código Adicional (Opcional)</Label>
                 <Input 
                   type="text" 
                   placeholder="Ej: 123456" 
                   className="bg-primary/10 border-primary/30"
-                  value={operationNumber}
-                  onChange={(e) => setOperationNumber(e.target.value)}
+                  value={additionalCode}
+                  onChange={(e) => setAdditionalCode(e.target.value)}
                 />
+                <p className="text-[10px] text-muted-foreground leading-tight">
+                  Código adicional brindado por el administrador (si aplica)
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -128,16 +192,14 @@ export function NewPaymentModal({
                       </p>
                       <label className="cursor-pointer">
                         <span className="text-accent hover:underline">selecciona un archivo</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={onFileChange}
-                        />
+                        <input type="file" className="hidden" accept="image/*" onChange={onFileChange} />
                       </label>
                     </>
                   )}
                 </div>
+                <p className="text-[10px] text-muted-foreground leading-tight mt-2">
+                  Sube una foto clara o captura de pantalla de tu comprobante de pago (Máx. 2MB).
+                </p>
               </div>
 
               {submitError && (
