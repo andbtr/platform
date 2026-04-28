@@ -1,7 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSupabaseConfig } from "@/components/providers/supabase-provider"
-import { createClient } from "@supabase/supabase-js"
 
 type UseAdminStateProps = {
   initialPayments: any[]
@@ -31,6 +30,7 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
   const [totalCount, setTotalCount] = useState<number | null>(initialTotalCount)
   const [socios, setSocios] = useState<any[]>(initialSocios)
 
+  // Helper function to map raw payment data to the desired format
   const reloadPagos = async (opts: { pageNum?: number; pSize?: number; q?: string; s?: string }) => {
     setLoadingPagos(true)
     setPagosError(null)
@@ -76,9 +76,6 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
       const payments = Array.isArray(body) ? body : (Array.isArray(body.payments) ? body.payments : [])
       console.log('Pagos obtenidos de la API:', payments.length, payments.map(p => ({ id: p.id, user_id: p.user_id, status: p.status })))
       
-      // Client for storage URLs
-      const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
       const mapped = payments.map((p: any) => {
         // Intentar diferentes campos de relación
         const possibleUserIds = [p.user_id, p.userId, p.member_id, p.memberId, p.socio_id, p.socioId]
@@ -90,13 +87,6 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
           (s.user_id && userId && String(s.user_id).toLowerCase() === String(userId).toLowerCase())
         )
         
-        console.log('Mapeando pago:', { 
-          pagoId: p.id, 
-          userId: userId,
-          memberFound: !!member, 
-          memberData: member ? { id: member.id, nombre: member.nombre } : null
-        })
-
         // Pasamos proof_url directamente, la URL firmada se genera en el componente
         const paymentProofUrl = null
         const proofUrl = p.proof_url
@@ -104,23 +94,18 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
         const estado = p.status || p.estado || 'PENDING'
 
         return {
-          id: p.id,
-          socioId: userId,
+          id: p.id, socioId: userId,
           nombre: member?.nombre || member?.full_name || p.name || 'Usuario',
-          dni: member?.dni || '',
-          bloque: member?.bloque || member?.blocks?.name || '',
-          monto: p.amount_paid || 0,
-          concepto: p.concept || p.description || 'Pago',
-          fecha: p.created_at,
-          additionalCode: p.adittional_code || '',
-          bankAccountName: p.bank_account_name || '',
-          paymentProofUrl: paymentProofUrl,
-          proofUrl: proofUrl,
-          hasPaymentProof: Boolean(proofUrl),
-          estado: estado
+          dni: member?.dni || '', bloque: member?.bloque || member?.blocks?.name || '',
+          monto: p.amount_paid || 0, concepto: p.concept || p.description || 'Pago',
+          method: p.method || p.payment_method || p.metodo || p.medio_pago || '',
+          fecha: p.created_at, additionalCode: p.adittional_code || '',
+          bankAccountName: p.bank_account_name || '', paymentProofUrl: paymentProofUrl,
+          adminNotes: p.admin_notes || '', proofUrl: proofUrl,
+          hasPaymentProof: Boolean(proofUrl), estado: estado
         }
       })
-
+      
       console.log('Pagos mapeados:', mapped.length, 'pagos')
       console.log('Filtro aplicado:', status)
 
@@ -138,6 +123,10 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
       setLoadingPagos(false)
     }
   }
+
+  useEffect(() => {
+    reloadPagos({})
+  }, [page, pageSize, searchTerm, selectedStatus])
 
   const handleSearch = (value: string) => {
     setSearchTerm(value)
@@ -201,8 +190,8 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
     }
   }
 
-  const handleRechazarPago = async (pagoId: number) => {
-    console.log('Rechazando pago:', pagoId)
+  const handleRechazarPago = async (pagoId: number, adminNotes: string) => {
+    console.log('Rechazando pago:', pagoId, 'con motivo:', adminNotes)
     try {
       if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase no configurado')
       const token = accessToken
@@ -218,7 +207,7 @@ export function useAdminState({ initialPayments, initialTotalCount, initialSocio
       const res = await fetch(url, {
         method: 'PATCH',
         headers,
-        body: JSON.stringify({ status: 'REJECTED' })
+        body: JSON.stringify({ status: 'REJECTED', admin_notes: adminNotes })
       })
 
       console.log('Respuesta del servidor:', res.status, res.statusText)

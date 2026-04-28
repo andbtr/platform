@@ -15,3 +15,48 @@ export async function getBlocks() {
   if (error) throw error
   return data ?? []
 }
+
+export async function getPhotos() {
+  const { data, error } = await supabaseServer
+    .from('photos')
+    .select('image_url, title, description')
+    .eq('active', true)
+    .order('created_at', { ascending: false })
+    .limit(6)
+
+  if (error) {
+    console.error('Error fetching photos:', error)
+    return []
+  }
+  return data ?? []
+}
+
+export async function getNews() {
+  const { data, error } = await supabaseServer
+    .from('news')
+    .select('id, title, content, image_url, link, priority, type, created_at')
+    .eq('active', true)
+    .order('priority', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  if (error) {
+    console.error('Error fetching news:', error)
+    return []
+  }
+  return data ?? []
+}
+
+export async function getNewsById(id: number) {
+  const { data, error } = await supabaseServer
+    .from('news')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    console.error(`Error fetching news with id ${id}:`, error)
+    return null
+  }
+  return data
+}

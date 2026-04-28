@@ -1,6 +1,7 @@
 import { Check, Clock, Eye, X, Loader2 } from "lucide-react"
 import { useState } from "react"
 import Image from "next/image"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useSupabaseConfig } from "@/components/providers/supabase-provider"
 import { createSupabaseClient } from "@/lib/supabase"
@@ -9,9 +10,10 @@ interface PaymentHistoryProps {
   payments: any[]
   paymentsLoading: boolean
   paymentsError: string | null
+  onReportPaymentClick: () => void
 }
 
-export function PaymentHistory({ payments, paymentsLoading, paymentsError }: PaymentHistoryProps) {
+export function PaymentHistory({ payments, paymentsLoading, paymentsError, onReportPaymentClick }: PaymentHistoryProps) {
   const [selectedPaymentProof, setSelectedPaymentProof] = useState<string | null>(null)
   const [isGeneratingUrl, setIsGeneratingUrl] = useState(false)
   const { supabaseUrl, supabaseAnonKey } = useSupabaseConfig()
@@ -23,8 +25,6 @@ export function PaymentHistory({ payments, paymentsLoading, paymentsError }: Pay
     try {
       const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
       
-      // La política requiere que el usuario esté autenticado para ver su carpeta
-      // Generamos una URL firmada de corta duración (60 segundos)
       const { data, error } = await supabase.storage
         .from('payment-proofs')
         .createSignedUrl(path, 60)
@@ -42,8 +42,19 @@ export function PaymentHistory({ payments, paymentsLoading, paymentsError }: Pay
 
   return (
     <div className="glass-card rounded-2xl overflow-hidden mb-8">
-      <div className="p-6 border-b border-primary/20">
-        <h2 className="text-xl font-serif font-bold text-foreground">Historial de Pagos</h2>
+      <div className="p-6 border-b border-primary/20 flex items-center justify-between gap-4 md:items-center">
+        <h2 className="text-xl font-serif font-bold leading-none text-foreground">Historial de Pagos</h2>
+        <Button
+          type="button"
+          onClick={onReportPaymentClick}
+          className="hidden md:inline-flex h-10 items-center gap-2 self-center rounded-lg bg-emerald-500 px-4 font-semibold text-white shadow-[0_10px_24px_rgba(16,185,129,0.18)] ring-1 ring-emerald-300/10 hover:bg-emerald-400 hover:shadow-[0_12px_28px_rgba(16,185,129,0.24)]"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+          Reportar Pago
+        </Button>
       </div>
       <div className="divide-y divide-primary/10">
         {paymentsLoading ? (
@@ -57,44 +68,32 @@ export function PaymentHistory({ payments, paymentsLoading, paymentsError }: Pay
             const date = new Date(p.created_at || p.fecha || p.date)
             const amount = p.amount_paid || p.amount || p.monto || p.total || 0
             const rawStatus = (p.status || p.estado || '').toLowerCase()
-            const isApproved = rawStatus === 'APPROVED' || rawStatus === 'approved' || p.approved === true
-            const isRejected = rawStatus === 'REJECTED' || rawStatus === 'rejected' || p.rejected === true
+            const isApproved = rawStatus === 'approved' || p.approved === true
+            const isRejected = rawStatus === 'rejected' || p.rejected === true
             const status = isRejected ? 'REJECTED' : (isApproved ? 'APPROVED' : 'PENDING')
             const concept = p.concept || p.concepto || p.description || 'Pago'
             const proofUrl = p.proof_url || p.voucher_url || p.voucher
-            
-            // Función para obtener el icono y color según el estado (igual que en admin)
+            const adminNotes = p.admin_notes || p.adminNotes
+
             const getStatusIcon = (estado: string) => {
               switch (estado) {
-                case 'APPROVED':
-                case 'approved':
-                  return { icon: Check, bgColor: 'bg-green-500/20', iconColor: 'text-green-400' }
-                case 'REJECTED':
-                case 'rejected':
-                  return { icon: X, bgColor: 'bg-red-500/20', iconColor: 'text-red-400' }
-                case 'PENDING':
-                case 'pending':
-                default:
-                  return { icon: Clock, bgColor: 'bg-yellow-500/20', iconColor: 'text-yellow-400' }
+                case 'APPROVED': return { icon: Check, bgColor: 'bg-green-500/20', iconColor: 'text-green-400' }
+                case 'REJECTED': return { icon: X, bgColor: 'bg-red-500/20', iconColor: 'text-red-400' }
+                case 'PENDING': default: return { icon: Clock, bgColor: 'bg-yellow-500/20', iconColor: 'text-yellow-400' }
               }
             }
             
-            // Función para obtener el badge del estado (igual que en admin)
             const getStatusBadge = (estado: string) => {
               switch (estado) {
-                case 'APPROVED':
-                case 'approved':
-                  return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Aprobado</Badge>
-                case 'REJECTED':
-                case 'rejected':
-                  return <Badge variant="destructive">Rechazado</Badge>
-                case 'PENDING':
-                case 'pending':
-                default:
-                  return <Badge variant="outline" className="border-yellow-500/30 text-yellow-400">Pendiente</Badge>
+                case 'APPROVED': return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Aprobado</Badge>
+                case 'REJECTED': return <Badge variant="destructive">Rechazado</Badge>
+                case 'PENDING': default: return <Badge variant="outline" className="border-yellow-500/30 text-yellow-400">Pendiente</Badge>
               }
             }
             
+            const statusInfo = getStatusIcon(status)
+            const StatusIcon = statusInfo.icon
+
             return (
               <div key={p.id} className="p-4 flex items-center justify-between hover:bg-primary/5 transition-colors group">
                 <div className="flex items-center gap-4">
@@ -128,15 +127,15 @@ export function PaymentHistory({ payments, paymentsLoading, paymentsError }: Pay
                         Titular: {p.bank_account_name}
                       </p>
                     )}
+                    {status === 'REJECTED' && adminNotes && (
+                      <p className="text-xs text-red-400 mt-0.5">
+                        Motivo de rechazo: {adminNotes}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-foreground">S/ {amount}</p>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    status === 'aprobado' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
-                  }`}>
-                    {status === 'aprobado' ? 'Aprobado' : 'Pendiente'}
-                  </span>
+                  <p className="text-lg font-extrabold text-accent tracking-tight">S/ {amount}</p>
                 </div>
               </div>
             )

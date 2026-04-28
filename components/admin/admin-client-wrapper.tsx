@@ -1,10 +1,12 @@
 "use client"
 
-import { Clock, Users } from "lucide-react"
+import { Clock, Users, LogOut } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { useAdminState } from "@/hooks/use-admin-state"
+import { useAuth } from "@/components/providers/auth-provider"
 import { AdminStats } from "@/components/admin/admin-stats"
 import dynamic from "next/dynamic"
 
@@ -45,6 +47,8 @@ export function AdminClientWrapper({ initialPayments, initialTotalCount, initial
     handleRechazarPago,
     openPaymentProofModal
   } = useAdminState({ initialPayments, initialTotalCount, initialSocios })
+  
+  const { signOut } = useAuth()
 
   return (
     <div className="min-h-screen bg-background">
@@ -56,12 +60,18 @@ export function AdminClientWrapper({ initialPayments, initialTotalCount, initial
       </div>
 
       <main className="relative z-10 container mx-auto px-4 py-6">
-        <AdminStats 
-          totalSocios={totalSocios}
-          totalRecaudado={totalRecaudado}
-          sociosAlDia={sociosAlDia}
-          sociosAtrasados={sociosAtrasados}
-        />
+        <div className="flex justify-between items-start mb-6">
+          <AdminStats 
+            totalSocios={totalSocios}
+            totalRecaudado={totalRecaudado}
+            sociosAlDia={sociosAlDia}
+            sociosAtrasados={sociosAtrasados}
+          />
+          <Button variant="outline" size="sm" onClick={signOut} className="flex-shrink-0">
+            <LogOut className="w-4 h-4 mr-2" />
+            Cerrar sesión
+          </Button>
+        </div>
 
         {/* Tabs */}
         <Tabs defaultValue="pagos" className="space-y-6">

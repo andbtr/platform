@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { User, Menu } from "lucide-react"
+import { Home, LogOut, Menu, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { useAuth } from "@/components/providers/auth-provider"
 
 export function DashboardHeader() {
   const [mounted, setMounted] = useState(false)
+  const { signOut } = useAuth()
 
   useEffect(() => {
     setMounted(true)
@@ -31,6 +33,9 @@ export function DashboardHeader() {
             </Link>
             <nav className="hidden md:flex items-center gap-6">
               <Link href="/dashboard" className="text-sm font-medium text-foreground">Mi panel</Link>
+              <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                Inicio
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
@@ -40,6 +45,15 @@ export function DashboardHeader() {
                 Mi Perfil
               </Button>
             </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden sm:flex"
+              onClick={async () => await signOut()}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Cerrar sesion
+            </Button>
             {mounted && (
               <div className="md:hidden">
                 <Sheet>
@@ -54,6 +68,7 @@ export function DashboardHeader() {
                     </SheetHeader>
                     <nav className="flex flex-col gap-4 mt-8">
                       <Link href="/dashboard" className="text-lg font-medium">Mi panel</Link>
+                      <Link href="/" className="text-lg font-medium">Inicio</Link>
                       <div className="h-px bg-border my-4" />
                       <Link href="/profile">
                         <Button variant="outline" className="w-full justify-start border-primary/30">
@@ -61,6 +76,14 @@ export function DashboardHeader() {
                           Mi Perfil
                         </Button>
                       </Link>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start border-red-500/30 text-red-400 hover:bg-red-500/10"
+                        onClick={async () => await signOut()}
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Cerrar sesion
+                      </Button>
                     </nav>
                   </SheetContent>
                 </Sheet>

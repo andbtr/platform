@@ -12,8 +12,9 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
   const [paymentSubmitted, setPaymentSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitAttempted, setSubmitAttempted] = useState(false)
   
-  const [amount, setAmount] = useState<string>(initialSocio.montoMensual?.toString() || "90")
+  const [amount, setAmount] = useState<string>("")
   const [paymentDate, setPaymentDate] = useState<string>(new Date().toISOString().split('T')[0])
   
   // Calcular cuotas totales basado en la fecha de registro hasta Febrero 2027
@@ -32,6 +33,13 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
   const [concept, setConcept] = useState<string>("")
   const [additionalCode, setAdditionalCode] = useState<string>("")
   const [bankAccountName, setBankAccountName] = useState<string>("")
+  const [paymentMethod, setPaymentMethod] = useState<string>("")
+
+  useEffect(() => {
+    if (isPaymentModalOpen) {
+      setPaymentMethod("")
+    }
+  }, [isPaymentModalOpen])
   
   const [payments, setPayments] = useState<any[]>(initialPayments || [])
 
@@ -44,16 +52,14 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
   const totalPagadoAcumulado = approvedPaymentsForSuggest.reduce((acc, p) => acc + (p.amount_paid || 0), 0)
   const nextInstallmentNumberValue = Math.floor(totalPagadoAcumulado / CUOTA_AMOUNT_SUGGEST) + 1
   
-  const suggestedConcept = nextInstallmentNumberValue <= cuotasTotalesCalculadas 
-    ? `cuota${nextInstallmentNumberValue}`
-    : "adelanto"
+  const suggestedConcept = `cuota${nextInstallmentNumberValue}`
 
   // Sincronizar el concepto sugerido cuando cambien los pagos
   useEffect(() => {
-    if (!concept) {
+    if (concept !== "otro") {
       setConcept(suggestedConcept)
     }
-  }, [suggestedConcept])
+  }, [suggestedConcept, concept])
 
   const [paymentsLoading, setPaymentsLoading] = useState(false)
   const [paymentsError, setPaymentsError] = useState<string | null>(null)
@@ -178,6 +184,7 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
   }
 
   const handleSubmitPayment = async () => {
+    setSubmitAttempted(true)
     if (!paymentProofFile || !user) return
 
     if (!bankAccountName.trim()) {
@@ -192,6 +199,11 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
 
     if (!paymentDate) {
       setSubmitError("La fecha de pago es obligatoria")
+      return
+    }
+
+    if (!paymentMethod) {
+      setSubmitError("Selecciona el metodo de pago")
       return
     }
 
@@ -256,10 +268,14 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
       // Insertar registro en la tabla payments
       // Determinamos el número de cuota si el concepto lo indica
       let installmentNumber = 0 // Valor por defecto para evitar error de NOT NULL
-      if (concept.startsWith('cuota')) {
+      if (concept === "otro") {
+        installmentNumber = -1
+      } else if (concept.startsWith('cuota')) {
         const num = parseInt(concept.replace('cuota', ''))
         if (!isNaN(num)) installmentNumber = num
       }
+
+      const methodValue = paymentMethod.toUpperCase()
 
       const { error: insertError } = await supabase
         .from('payments')
@@ -272,7 +288,7 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
           payment_date: paymentDate,
           status: 'PENDING',
           proof_url: filePath,
-          method: 'TRANSFER', // O el método que corresponda por defecto
+          method: methodValue,
           is_active: true
         })
 
@@ -288,11 +304,14 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
       setTimeout(() => {
         setIsPaymentModalOpen(false)
         setPaymentSubmitted(false)
+        setSubmitAttempted(false)
         setPaymentProofFile(null)
         setPaymentProofPreview(null)
         setAdditionalCode("")
         setBankAccountName("")
         setPaymentDate(new Date().toISOString().split('T')[0])
+        setPaymentMethod("")
+        setAmount("")
       }, 2000)
 
     } catch (error) {
@@ -323,6 +342,7 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
     paymentSubmitted,
     isSubmitting,
     submitError,
+    submitAttempted,
     amount,
     setAmount,
     concept,
@@ -331,6 +351,8 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
     setAdditionalCode,
     bankAccountName,
     setBankAccountName,
+    paymentMethod,
+    setPaymentMethod,
     paymentDate,
     setPaymentDate,
     cuotasTotalesCalculadas,

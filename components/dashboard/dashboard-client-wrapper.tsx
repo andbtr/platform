@@ -4,6 +4,8 @@ import { useDashboardState } from "@/hooks/use-dashboard-state"
 import { DashboardStats } from "@/components/dashboard/dashboard-stats"
 import { PaymentHistory } from "@/components/dashboard/payment-history"
 import { PaymentInfo } from "@/components/dashboard/payment-info"
+import { Button } from "@/components/ui/button"
+import { Upload } from "lucide-react"
 import dynamic from "next/dynamic"
 
 const NewPaymentModal = dynamic(() => import("@/components/dashboard/new-payment-modal").then(mod => mod.NewPaymentModal))
@@ -27,6 +29,7 @@ export function DashboardClientWrapper({ initialSocio, initialPayments, user }: 
     paymentSubmitted,
     isSubmitting,
     submitError,
+    submitAttempted,
     amount,
     setAmount,
     concept,
@@ -35,6 +38,8 @@ export function DashboardClientWrapper({ initialSocio, initialPayments, user }: 
     setAdditionalCode,
     bankAccountName,
     setBankAccountName,
+    paymentMethod,
+    setPaymentMethod,
     paymentDate,
     setPaymentDate,
     cuotasTotalesCalculadas,
@@ -89,8 +94,20 @@ export function DashboardClientWrapper({ initialSocio, initialPayments, user }: 
           payments={payments} 
           paymentsLoading={paymentsLoading} 
           paymentsError={paymentsError} 
+          onReportPaymentClick={() => setIsPaymentModalOpen(true)}
         />
       </main>
+
+      <div className="fixed bottom-4 left-1/2 z-30 w-auto -translate-x-1/2 px-4 md:hidden">
+        <Button
+          type="button"
+          onClick={() => setIsPaymentModalOpen(true)}
+          className="inline-flex h-14 min-w-[220px] items-center justify-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500 px-6 text-base font-semibold text-white shadow-[0_18px_40px_rgba(16,185,129,0.35)] backdrop-blur-md hover:bg-emerald-400"
+        >
+          <Upload className="h-5 w-5" />
+          Reportar Pago
+        </Button>
+      </div>
 
       <NewPaymentModal 
         isOpen={isPaymentModalOpen}
@@ -107,6 +124,7 @@ export function DashboardClientWrapper({ initialSocio, initialPayments, user }: 
         onSubmit={handleSubmitPayment}
         isSubmitting={isSubmitting}
         submitError={submitError}
+        submitAttempted={submitAttempted}
         amount={amount}
         setAmount={setAmount}
         concept={concept}
@@ -115,6 +133,8 @@ export function DashboardClientWrapper({ initialSocio, initialPayments, user }: 
         setAdditionalCode={setAdditionalCode}
         bankAccountName={bankAccountName}
         setBankAccountName={setBankAccountName}
+        paymentMethod={paymentMethod}
+        setPaymentMethod={setPaymentMethod}
         paymentDate={paymentDate}
         setPaymentDate={setPaymentDate}
         cuotasTotalesCalculadas={cuotasTotalesCalculadas}

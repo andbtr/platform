@@ -1,6 +1,6 @@
 import Image from "next/image"
-import { Check, Upload, X, Loader2 } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Check, Clock, Upload, X, Loader2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -22,6 +22,7 @@ export function NewPaymentModal({
   onSubmit,
   isSubmitting,
   submitError,
+  submitAttempted,
   amount,
   setAmount,
   concept,
@@ -30,6 +31,8 @@ export function NewPaymentModal({
   setAdditionalCode,
   bankAccountName,
   setBankAccountName,
+  paymentMethod,
+  setPaymentMethod,
   paymentDate,
   setPaymentDate,
   cuotasTotalesCalculadas,
@@ -40,15 +43,8 @@ export function NewPaymentModal({
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-background via-background to-transparent">
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogTrigger asChild>
-          <Button className="w-full h-14 text-lg font-bold bg-accent hover:bg-accent/90 text-white rounded-xl shadow-lg shadow-accent/30">
-            <Upload className="w-5 h-5 mr-2" />
-            Reportar Pago Nuevo
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="glass-card border-primary/30 max-w-md">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="glass-card border-primary/30 max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-serif text-foreground">Reportar Pago</DialogTitle>
           </DialogHeader>
@@ -70,67 +66,99 @@ export function NewPaymentModal({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: cuotasTotalesCalculadas }, (_, i) => (
-                      <SelectItem key={i + 1} value={`cuota${i + 1}`}>
-                        Cuota #{i + 1} - S/ 90 {nextInstallmentNumber === i + 1 && "(Sugerido)"}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="adelanto">Adelanto de Cuotas</SelectItem>
+                    <SelectItem value={`cuota${nextInstallmentNumber}`}>
+                      Cuota #{nextInstallmentNumber} (Sugerido)
+                    </SelectItem>
                     <SelectItem value="otro">Otro concepto</SelectItem>
                   </SelectContent>
                 </Select>
-                {nextInstallmentNumber <= cuotasTotalesCalculadas && concept !== `cuota${nextInstallmentNumber}` ? (
+                {concept === "otro" ? (
                   <p className="text-[10px] text-yellow-500 mt-1 italic leading-tight">
-                    Nota: Según tus registros, te corresponde pagar la Cuota #{nextInstallmentNumber}.
+                    Nota: Usa esta opcion solo si el administrador lo indico.
                   </p>
                 ) : (
                   <p className="text-[10px] text-muted-foreground leading-tight mt-1">
-                    Selecciona el número de cuota o concepto que estás pagando.
+                    Se usara automaticamente la cuota sugerida.
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label>Monto (Obligatorio)</Label>
-                <Input 
-                  type="number" 
-                  placeholder="90.00" 
+                <Label>Monto (S/)</Label>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.,]?[0-9]*"
+                  placeholder="S/ 0.00"
                   className="bg-primary/10 border-primary/30"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   required
                 />
+                {submitAttempted && !amount && (
+                  <p className="text-[10px] text-red-400 leading-tight">
+                    Campo obligatorio.
+                  </p>
+                )}
                 <p className="text-[10px] text-muted-foreground leading-tight">
-                  Ingresa el monto exacto que figura en tu voucher (en Soles).
+                  Debe coincidir exactamente con tu comprobante.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Fecha en que realizaste el pago</Label>
-                  <button 
+                <Label>Fecha del pago</Label>
+                <div className="flex items-center gap-2">
+                  <Input 
+                    type="date" 
+                    className="flex-1 bg-primary/10 border-primary/30 text-foreground [color-scheme:dark]"
+                    placeholder="Selecciona una fecha"
+                    value={paymentDate}
+                    onChange={(e) => setPaymentDate(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                  <Button
                     type="button"
+                    size="sm"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-3"
                     onClick={handleSetToday}
-                    className="text-xs text-accent hover:underline font-medium"
                   >
-                    Usar fecha de hoy
-                  </button>
+                    <Clock className="w-3.5 h-3.5 mr-1" />
+                    Hoy
+                  </Button>
                 </div>
-                <Input 
-                  type="date" 
-                  className="bg-primary/10 border-primary/30"
-                  value={paymentDate}
-                  onChange={(e) => setPaymentDate(e.target.value)}
-                  max={new Date().toISOString().split('T')[0]}
-                  required
-                />
+                {submitAttempted && !paymentDate && (
+                  <p className="text-[10px] text-red-400 leading-tight">
+                    Campo obligatorio.
+                  </p>
+                )}
                 <p className="text-[10px] text-muted-foreground leading-tight">
-                  Selecciona la fecha que aparece en tu comprobante. Si acabas de pagar, puedes usar la fecha de hoy.
+                  Debe coincidir con la fecha del comprobante.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label>Nombre del titular de la cuenta de origen (Obligatorio)</Label>
+                <Label>Metodo de pago</Label>
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger className="bg-primary/10 border-primary/30">
+                    <SelectValue placeholder="Selecciona un método de pago" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="QR_YAPE_PLIN">Yape / Plin</SelectItem>
+                    <SelectItem value="TRANSFERENCIA_BANCARIA">Transferencia bancaria</SelectItem>
+                    <SelectItem value="TRANSFERENCIA_INTERBANCARIA">Transferencia interbancaria</SelectItem>
+                    <SelectItem value="OTRAS_BILLETERAS_DIGITALES">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+                {submitAttempted && !paymentMethod && (
+                  <p className="text-[10px] text-red-400 leading-tight">
+                    Campo obligatorio.
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Nombre del titular de la cuenta</Label>
                 <Input 
                   type="text" 
                   placeholder="Ej: Juan Pérez" 
@@ -139,13 +167,18 @@ export function NewPaymentModal({
                   onChange={(e) => setBankAccountName(e.target.value)}
                   required
                 />
+                {submitAttempted && !bankAccountName.trim() && (
+                  <p className="text-[10px] text-red-400 leading-tight">
+                    Campo obligatorio.
+                  </p>
+                )}
                 <p className="text-[10px] text-muted-foreground leading-tight">
-                  Nombre de la persona o entidad desde la cual se realizó la transferencia.
+                  Tal como aparece en el comprobante.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label>Código Adicional (Opcional)</Label>
+                <Label>Codigo adicional (opcional)</Label>
                 <Input 
                   type="text" 
                   placeholder="Ej: 123456" 
@@ -154,7 +187,7 @@ export function NewPaymentModal({
                   onChange={(e) => setAdditionalCode(e.target.value)}
                 />
                 <p className="text-[10px] text-muted-foreground leading-tight">
-                  Código adicional brindado por el administrador (si aplica)
+                  Solo si el administrador te proporciono uno.
                 </p>
               </div>
 
@@ -197,6 +230,11 @@ export function NewPaymentModal({
                     </>
                   )}
                 </div>
+                {submitAttempted && !paymentProofFile && (
+                  <p className="text-[10px] text-red-400 leading-tight mt-2">
+                    Campo obligatorio.
+                  </p>
+                )}
                 <p className="text-[10px] text-muted-foreground leading-tight mt-2">
                   Sube una foto clara o captura de pantalla de tu comprobante de pago (Máx. 2MB).
                 </p>
@@ -226,8 +264,7 @@ export function NewPaymentModal({
               </Button>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

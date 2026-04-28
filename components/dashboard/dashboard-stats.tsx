@@ -10,6 +10,8 @@ interface DashboardStatsProps {
 export function DashboardStats({ socio, saldoPendiente, progresoPago }: DashboardStatsProps) {
   const cuotasTotales = socio.cuotasTotales || 0
   const cuotasPagadas = socio.cuotasPagadas || 0
+  const isSaldoFavor = saldoPendiente <= 0
+  const saldoDisplay = Math.abs(saldoPendiente)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -37,15 +39,28 @@ export function DashboardStats({ socio, saldoPendiente, progresoPago }: Dashboar
       {/* Saldo Pendiente */}
       <div className="glass-card p-6 rounded-2xl">
         <div className="flex items-start justify-between mb-4">
-          <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
-            <CreditCard className="w-6 h-6 text-accent" />
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+            isSaldoFavor ? "bg-green-500/20" : "bg-accent/20"
+          }`}>
+            {isSaldoFavor ? (
+              <Wallet className="w-6 h-6 text-green-400" />
+            ) : (
+              <CreditCard className="w-6 h-6 text-accent" />
+            )}
           </div>
-          <TrendingUp className="w-5 h-5 text-muted-foreground" />
+          <TrendingUp className={`w-5 h-5 ${isSaldoFavor ? "text-green-400" : "text-muted-foreground"}`} />
         </div>
-        <p className="text-muted-foreground text-sm mb-1">Saldo Pendiente</p>
-        <p className="text-3xl font-bold text-foreground">S/ {saldoPendiente}</p>
+        <p className={`text-sm mb-1 ${isSaldoFavor ? "text-green-400" : "text-muted-foreground"}`}>
+          {isSaldoFavor ? "Saldo a favor" : "Saldo Pendiente"}
+        </p>
+        <p className={`text-3xl font-bold ${isSaldoFavor ? "text-green-400" : "text-foreground"}`}>
+          S/ {saldoDisplay}
+        </p>
         <p className="text-xs text-muted-foreground mt-2 font-medium">
-          Total a cubrir: <span className="text-foreground">S/ {socio.montoTotal || 0}</span>
+          {isSaldoFavor ? "Total cubierto:" : "Total a cubrir:"}{" "}
+          <span className={isSaldoFavor ? "text-green-400" : "text-foreground"}>
+            S/ {socio.montoTotal || 0}
+          </span>
         </p>
       </div>
 
@@ -58,20 +73,26 @@ export function DashboardStats({ socio, saldoPendiente, progresoPago }: Dashboar
             <Calendar className="w-6 h-6 text-primary" />
           </div>
           <div className="text-right">
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Monto Sugerido</span>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+              {isSaldoFavor ? "Sin pagos pendientes" : "Monto Sugerido"}
+            </span>
             <p className="text-2xl font-black text-primary drop-shadow-sm">
-              S/ {socio.montoMensual?.toFixed(2) || "90.00"}
+              {isSaldoFavor ? "—" : `S/ ${socio.montoMensual?.toFixed(2) || "90.00"}`}
             </p>
           </div>
         </div>
         
-        <p className="text-muted-foreground text-sm mb-1 relative z-10">Próximo Vencimiento</p>
+        <p className="text-muted-foreground text-sm mb-1 relative z-10">
+          {isSaldoFavor ? "Sin vencimientos pendientes" : "Próximo Vencimiento"}
+        </p>
         <p className="text-2xl font-bold text-foreground relative z-10">
-          {new Date(socio.proximoVencimiento).toLocaleDateString("es-PE", {
-            day: "numeric",
-            month: "long",
-            year: "numeric"
-          })}
+          {isSaldoFavor
+            ? "—"
+            : new Date(socio.proximoVencimiento).toLocaleDateString("es-PE", {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+              })}
         </p>
         
         <div className="mt-4 pt-4 border-t border-primary/10 flex items-center gap-2 relative z-10">

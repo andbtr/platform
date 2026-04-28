@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Bell, Menu, User, Shield, ArrowLeft } from "lucide-react"
+import { Bell, Menu, User, Shield, ArrowLeft, ImageIcon, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/components/providers/auth-provider"
@@ -220,11 +220,23 @@ export function Navigation() {
               {user ? (
                 <>
                   {isAdmin && (
-                    <Link href="/admin">
-                      <Button variant="outline" className="border-accent/40 text-foreground">
-                        Admin
-                      </Button>
-                    </Link>
+                    <>
+                      <Link href="/admin">
+                        <Button variant="outline" className="border-accent/40 text-foreground">
+                          Admin
+                        </Button>
+                      </Link>
+                      <Link href="/admin/gallery">
+                        <Button variant="outline" className="border-accent/40 text-foreground">
+                          Galería
+                        </Button>
+                      </Link>
+                      <Link href="/admin/news">
+                        <Button variant="outline" className="border-accent/40 text-foreground">
+                          Noticias
+                        </Button>
+                      </Link>
+                    </>
                   )}
                   {displayName && (
                     <span className="hidden lg:inline-flex items-center rounded-full bg-primary/15 border border-primary/30 px-3 py-1.5 text-sm text-foreground">
@@ -376,19 +388,47 @@ export function Navigation() {
                             Mi Panel de Socio
                           </Link>
                           {isAdmin && (
-                            <Link 
-                              href="/admin"
-                              onClick={() => setIsOpen(false)}
-                              className={cn(
-                                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
-                                isPathActive("/admin") 
-                                  ? "bg-accent/15 text-foreground border border-accent/20" 
-                                  : "text-muted-foreground hover:bg-accent/5 hover:text-foreground"
-                              )}
-                            >
-                              <Shield className="w-4 h-4" />
-                              Panel Administrador
-                            </Link>
+                            <>
+                              <Link 
+                                href="/admin"
+                                onClick={() => setIsOpen(false)}
+                                className={cn(
+                                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                                  isPathActive("/admin") 
+                                    ? "bg-accent/15 text-foreground border border-accent/20" 
+                                    : "text-muted-foreground hover:bg-accent/5 hover:text-foreground"
+                                )}
+                              >
+                                <Shield className="w-4 h-4" />
+                                Panel Administrador
+                              </Link>
+                              <Link 
+                                href="/admin/gallery"
+                                onClick={() => setIsOpen(false)}
+                                className={cn(
+                                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                                  isPathActive("/admin/gallery") 
+                                    ? "bg-accent/15 text-foreground border border-accent/20" 
+                                    : "text-muted-foreground hover:bg-accent/5 hover:text-foreground"
+                                )}
+                              >
+                                <ImageIcon className="w-4 h-4" />
+                                Galería
+                              </Link>
+                              <Link 
+                                href="/admin/news"
+                                onClick={() => setIsOpen(false)}
+                                className={cn(
+                                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                                  isPathActive("/admin/news") 
+                                    ? "bg-accent/15 text-foreground border border-accent/20" 
+                                    : "text-muted-foreground hover:bg-accent/5 hover:text-foreground"
+                                )}
+                              >
+                                <Newspaper className="w-4 h-4" />
+                                Noticias
+                              </Link>
+                            </>
                           )}
                         </>
                       ) : (
