@@ -23,7 +23,7 @@ type NewsSectionProps = {
   news: News[]
 }
 
-export function NewsSection({ news }: NewsSectionProps) {
+export function NewsSection({ news = [] }: NewsSectionProps) {
   const [selectedNews, setSelectedNews] = useState<News | null>(null)
 
   const formatDate = (dateString: string) => {

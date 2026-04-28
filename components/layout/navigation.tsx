@@ -84,14 +84,24 @@ export function Navigation() {
 
   const goToSection = (sectionId: string) => {
     setIsOpen(false)
+    const section = document.getElementById(sectionId)
 
     if (pathname === "/") {
-      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" })
-      setCurrentHash(`#${sectionId}`)
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth" })
+        setCurrentHash(`#${sectionId}`)
+      }
       return
     }
 
     router.push(`/#${sectionId}`)
+    setTimeout(() => {
+      const newSection = document.getElementById(sectionId)
+      if (newSection) {
+        newSection.scrollIntoView({ behavior: "smooth" })
+        setCurrentHash(`#${sectionId}`)
+      }
+    }, 300)
   }
 
   return (
