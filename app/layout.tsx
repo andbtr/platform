@@ -24,14 +24,59 @@ const playfair = Playfair_Display({
   display: 'swap',
 })
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Morenada Huajsapata',
+  description: 'La tradición más grande de Puno. Celebrando la Festividad de la Virgen de la Candelaria.',
+  url: 'https://morenada.huajsapata.com',
+  location: {
+    '@type': 'Place',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Puno',
+      addressCountry: 'PE',
+    },
+  },
+  sameAs: [
+    'https://www.facebook.com/morenadahuajsapata',
+    'https://www.instagram.com/morenadahuajsapata',
+    'https://www.tiktok.com/@morenadahuajsapata',
+  ],
+}
+
 export const metadata: Metadata = {
-  title: 'Morenada Huajsapata | Gestión 2026-2027 | Puno',
+  title: {
+    default: 'Morenada Huajsapata | Gestión 2026-2027 | Puno',
+    template: '%s | Morenada Huajsapata',
+  },
   description: 'Únete a la legendaria Morenada Huajsapata en la Festividad de la Virgen de la Candelaria. Inscríbete ahora y sé parte de la tradición más grande de Puno.',
   keywords: ['Morenada', 'Huajsapata', 'Candelaria', 'Puno', 'Festividad', 'Danza', 'Tradición', 'Perú'],
+  metadataBase: new URL('https://morenada.huajsapata.com'),
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: 'https://morenada.huajsapata.com',
+    languages: {
+      'es': 'https://morenada.huajsapata.com',
+      'en': 'https://morenada.huajsapata.com/en',
+    },
+  },
   openGraph: {
     title: 'Morenada Huajsapata | Gestión 2026-2027',
     description: 'Vuelve a casa. Vuelve a Huajsapata. Inscríbete y sé leyenda.',
+    url: 'https://morenada.huajsapata.com',
+    siteName: 'Morenada Huajsapata',
+    locale: 'es_PE',
+    alternateLocale: 'en_US',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Morenada Huajsapata | Gestión 2026-2027',
+    description: 'Vuelve a casa. Vuelve a Huajsapata. Inscríbete y sé leyenda.',
   },
 }
 
@@ -53,6 +98,12 @@ export default function RootLayout({
 
   return (
     <html lang="es" className="dark">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={`${inter.variable} ${cinzel.variable} ${playfair.variable} font-sans antialiased bg-[#050A18] text-white`}>
         <SupabaseProvider supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey}>
           <AuthProvider>
