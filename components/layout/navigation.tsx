@@ -249,14 +249,21 @@ export function Navigation() {
                   </Button>
                 </>
               ) : !user ? (
-                <Link href="/inscription">
-                  <Button className={cn(
-                    "bg-accent hover:bg-accent/90 text-white font-bold",
-                    isPathActive("/inscription") && "ring-2 ring-accent/60"
-                  )}>
-                    Inscribirme
-                  </Button>
-                </Link>
+                <>
+                  <Link href="/login">
+                    <Button variant="outline" className="border-primary/30 text-foreground">
+                      Entrar
+                    </Button>
+                  </Link>
+                  <Link href="/inscription">
+                    <Button className={cn(
+                      "bg-accent hover:bg-accent/90 text-white font-bold",
+                      isPathActive("/inscription") && "ring-2 ring-accent/60"
+                    )}>
+                      Inscribirme
+                    </Button>
+                  </Link>
+                </>
               ) : null}
 
               {user && isAdmin && (
