@@ -35,6 +35,12 @@ export function Navigation() {
     return typeof candidate === "string" ? candidate.trim() : null
   })()
 
+  const firstName = (() => {
+    if (!displayName) return null
+    const parts = displayName.trim().split(" ")
+    return parts[0]
+  })()
+
   const isPathActive = (path: string) => pathname === path
   const isSectionActive = (hash: string) => pathname === "/" && currentHash === hash
 
@@ -114,9 +120,18 @@ export function Navigation() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
+          <button 
+            onClick={() => {
+              if (pathname !== "/") {
+                router.push("/")
+              } else {
+                window.scrollTo({ top: 0, behavior: "smooth" })
+              }
+            }}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
             <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/huajsapata.png-ETs04yCnOGaA9a5tqHdj4RSxflUMNS.jpeg"
+              src="/huajsapata_negro.png"
               alt="Morenada Huajsapata"
               width={48}
               height={48}
@@ -127,7 +142,7 @@ export function Navigation() {
               <p className="font-serif font-bold text-foreground text-sm md:text-base">Morenada Huajsapata</p>
               <p className="text-xs text-primary">Gestion 2026-2027</p>
             </div>
-          </Link>
+          </button>
 
           {/* Desktop Navigation */}
           {pathname !== "/login" && pathname !== "/inscription" && (
@@ -135,7 +150,7 @@ export function Navigation() {
               <button
                 onClick={() => goToSection("info")}
                 className={cn(
-                  "transition-colors text-xs rounded-full px-3 py-1.5",
+                  "transition-colors text-sm rounded-full px-4 py-2",
                   isSectionActive("#info")
                     ? "bg-primary/20 text-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -146,7 +161,7 @@ export function Navigation() {
               <button
                 onClick={() => goToSection("noticias")}
                 className={cn(
-                  "transition-colors text-xs rounded-full px-3 py-1.5",
+                  "transition-colors text-sm rounded-full px-4 py-2",
                   isSectionActive("#noticias")
                     ? "bg-primary/20 text-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -157,7 +172,7 @@ export function Navigation() {
               <button
                 onClick={() => goToSection("filiales")}
                 className={cn(
-                  "transition-colors text-xs rounded-full px-3 py-1.5",
+                  "transition-colors text-sm rounded-full px-4 py-2",
                   isSectionActive("#filiales")
                     ? "bg-primary/20 text-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -168,7 +183,7 @@ export function Navigation() {
               <button
                 onClick={() => goToSection("galeria")}
                 className={cn(
-                  "transition-colors text-xs rounded-full px-3 py-1.5",
+                  "transition-colors text-sm rounded-full px-4 py-2",
                   isSectionActive("#galeria")
                     ? "bg-primary/20 text-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -179,7 +194,7 @@ export function Navigation() {
               <button
                 onClick={() => goToSection("bloques")}
                 className={cn(
-                  "transition-colors text-xs rounded-full px-3 py-1.5",
+                  "transition-colors text-sm rounded-full px-4 py-2",
                   isSectionActive("#bloques")
                     ? "bg-primary/20 text-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -192,7 +207,7 @@ export function Navigation() {
 
           {/* Desktop CTA */}
           {pathname !== "/login" && pathname !== "/inscription" && (
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-3">
               {user && (
                 <Button
                   variant="ghost"
@@ -212,7 +227,7 @@ export function Navigation() {
 
               {user && !isAdmin ? (
                 <Link href="/dashboard">
-                  <Button className="bg-primary/20 hover:bg-primary/30 text-foreground font-bold">
+                  <Button className="bg-gradient-to-r from-[#4FB8C4] to-[#1E6B7E] hover:from-[#5CCBD4] hover:to-[#2E7B8E] text-white font-semibold shadow-lg shadow-[#4FB8C4]/20">
                     Mi Panel
                   </Button>
                 </Link>
@@ -248,12 +263,16 @@ export function Navigation() {
                       </Link>
                     </>
                   )}
-                  {displayName && (
-                    <span className="hidden lg:inline-flex items-center rounded-full bg-primary/15 border border-primary/30 px-3 py-1.5 text-sm text-foreground">
-                      Hola, {displayName}
+                  {firstName && (
+                    <span className="hidden lg:inline-flex items-center rounded-full bg-primary/15 border border-primary/30 px-3 py-1.5 text-sm text-foreground mx-2">
+                      Hola, {firstName}
                     </span>
                   )}
-                  <Button variant="ghost" onClick={async () => await signOut()}>
+                  <Button 
+                    variant="ghost" 
+                    onClick={async () => await signOut()}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  >
                     Cerrar sesión
                   </Button>
                 </>

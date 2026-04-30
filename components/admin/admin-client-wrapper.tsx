@@ -1,12 +1,11 @@
 "use client"
 
-import { Clock, Users, LogOut } from "lucide-react"
+import { Clock, Users, Wallet } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { useAdminState } from "@/hooks/use-admin-state"
-import { useAuth } from "@/components/providers/auth-provider"
 import { AdminStats } from "@/components/admin/admin-stats"
 import dynamic from "next/dynamic"
 
@@ -48,8 +47,6 @@ export function AdminClientWrapper({ initialPayments, initialTotalCount, initial
     openPaymentProofModal
   } = useAdminState({ initialPayments, initialTotalCount, initialSocios })
   
-  const { signOut } = useAuth()
-
   return (
     <div className="min-h-screen bg-background">
       {/* Background */}
@@ -60,17 +57,24 @@ export function AdminClientWrapper({ initialPayments, initialTotalCount, initial
       </div>
 
       <main className="relative z-10 container mx-auto px-4 py-6">
-        <div className="flex justify-between items-start mb-6">
+        <div className="mb-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="p-3 rounded-xl bg-accent/20">
+              <Wallet className="w-8 h-8 text-accent" />
+            </div>
+            <div>
+              <h1 className="font-[family-name:var(--font-cinzel)] text-3xl font-bold text-gold-gradient">
+                Gestión de Pagos
+              </h1>
+              <p className="text-white/60">Administra los pagos de los socios</p>
+            </div>
+          </div>
           <AdminStats 
             totalSocios={totalSocios}
             totalRecaudado={totalRecaudado}
             sociosAlDia={sociosAlDia}
             sociosAtrasados={sociosAtrasados}
           />
-          <Button variant="outline" size="sm" onClick={signOut} className="flex-shrink-0">
-            <LogOut className="w-4 h-4 mr-2" />
-            Cerrar sesión
-          </Button>
         </div>
 
         {/* Tabs */}

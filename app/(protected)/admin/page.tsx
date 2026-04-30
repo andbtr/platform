@@ -130,7 +130,7 @@ export default async function AdminPage() {
   return (
     <>
       <div className="relative z-20">
-        <AdminHeader />
+        <AdminHeader activeSection="pagos" />
       </div>
 
       <div className="pt-16 md:pt-20">

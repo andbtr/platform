@@ -208,6 +208,12 @@
   border: 1px solid rgba(197, 160, 89, 0.5);
 }
 
+/* Logo Container - Halo for visibility on dark/light backgrounds */
+.logo-container img {
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))
+          drop-shadow(0 0 5px rgba(0, 0, 0, 0.2));
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

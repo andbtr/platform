@@ -1,6 +1,6 @@
 import { HeroSection } from "@/components/sections/hero-section"
 import { Navigation } from "@/components/layout/navigation"
-import { getBlocks, getPhotos, getNews } from "@/lib/supabase-server"
+import { getBlocks, getPhotos, getNews, getBranches } from "@/lib/supabase-server"
 import dynamic from "next/dynamic"
 
 const InfoSection = dynamic(() => import("@/components/sections/info-section").then(mod => mod.InfoSection))
@@ -14,6 +14,7 @@ export default async function Home() {
   const blocks = await getBlocks()
   const photos = await getPhotos()
   const news = await getNews()
+  const branches = await getBranches()
 
   return (
     <main className="min-h-screen bg-background">
@@ -21,7 +22,7 @@ export default async function Home() {
       <HeroSection />
       <InfoSection />
       <NewsSection news={news} />
-      <FilialesSection />
+      <FilialesSection branches={branches} />
       <GallerySection photos={photos} />
       <BlocksSection blocks={blocks} />
       <Footer />

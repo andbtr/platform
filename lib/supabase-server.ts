@@ -10,9 +10,13 @@ export const supabaseServer = createClient(supabaseUrl, supabaseKey, {
 export async function getBlocks() {
   const { data, error } = await supabaseServer
     .from('blocks')
-    .select('id, name, total_price')
+    .select('id, name, total_price, image_url')
+    .eq('is_active', true)
 
-  if (error) throw error
+  if (error) {
+    console.error('Error fetching blocks:', error)
+    throw error
+  }
   return data ?? []
 }
 
@@ -59,4 +63,18 @@ export async function getNewsById(id: number) {
     return null
   }
   return data
+}
+
+export async function getBranches() {
+  const { data, error } = await supabaseServer
+    .from('branches')
+    .select('id, city, name, location, phone, social_url, is_active')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching branches:', error)
+    return []
+  }
+  return data ?? []
 }

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { User, Lock } from "lucide-react"
+import { User, Lock, Eye, EyeOff } from "lucide-react"
 import { useToast } from '@/hooks/use-toast'
 import { useSupabase } from "@/components/providers/supabase-provider"
 
@@ -11,16 +11,21 @@ export default function LoginForm() {
   const supabase = useSupabase()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [info, setInfo] = useState<string | null>(null)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!email.trim() || !password.trim()) {
+      setError('Por favor completa todos los campos para iniciar sesión.')
+      return
+    }
+    
     setLoading(true)
     setError(null)
-    setInfo(null)
 
     try {
       const finalEmail = email.includes('@') ? email : `${email}@huajsapata.com`
@@ -32,8 +37,11 @@ export default function LoginForm() {
       setLoading(false)
 
       if (error) {
-        setError(error.message)
-        toast({ title: 'Error', description: error.message, variant: 'destructive' })
+        const errorMessage = error.message.includes('Invalid') 
+          ? 'Usuario o contraseña incorrectos. Por favor verifica tus datos e intenta nuevamente.' 
+          : error.message
+        setError(errorMessage)
+        toast({ title: 'Error', description: errorMessage, variant: 'destructive' })
         return
       }
 
@@ -54,7 +62,7 @@ export default function LoginForm() {
         if (roleData) isAdmin = true
       }
 
-      toast({ title: '¡Bienvenido!', description: 'Has iniciado sesión correctamente.' })
+      toast({ title: 'Welcome!', description: 'You have successfully logged in.' })
       
       if (isAdmin) {
         router.push('/admin')
@@ -63,32 +71,12 @@ export default function LoginForm() {
       }
     } catch (err: any) {
       setLoading(false)
-      const message = err?.message ?? 'Error desconocido'
+      const rawMessage = err?.message ?? 'Unknown error'
+      const message = rawMessage.includes('Invalid') 
+        ? 'Usuario o contraseña incorrectos. Por favor verifica tus datos e intenta nuevamente.' 
+        : rawMessage
       setError(message)
-      toast({ title: 'Error', description: String(message), variant: 'destructive' })
-    }
-  }
-
-  const handleReset = async () => {
-    if (!email) return setError('Ingresa tu usuario o correo para enviar el enlace')
-    setLoading(true)
-    setError(null)
-    try {
-      const finalEmail = email.includes('@') ? email : `${email}@huajsapata.com`
-      const { error } = await supabase.auth.resetPasswordForEmail(finalEmail)
-      setLoading(false)
-      if (error) {
-        setError(error.message)
-        toast({ title: 'Error', description: error.message, variant: 'destructive' })
-        return
-      }
-      setInfo('Se envió el correo de restablecimiento si la cuenta existe')
-      toast({ title: 'Correo enviado', description: 'Revisa tu bandeja para restablecer la contraseña.' })
-    } catch (err: any) {
-      setLoading(false)
-      const message = err?.message ?? 'Error desconocido'
-      setError(message)
-      toast({ title: 'Error', description: String(message), variant: 'destructive' })
+      toast({ title: 'Error', description: message, variant: 'destructive' })
     }
   }
 
@@ -106,36 +94,45 @@ export default function LoginForm() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div>
-          <label className="block text-[#C5A059] text-sm mb-2 font-medium">Usuario o correo</label>
+          <label className="flex items-center gap-2 text-[#C5A059] text-sm mb-2 font-medium">
+            <User className="w-4 h-4" />
+            Usuario
+          </label>
           <input
             type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
             className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all"
-            placeholder="usuario (sin @) o correo completo"
+            placeholder="Tu usuario"
           />
         </div>
 
         <div>
-          <label className="block text-[#C5A059] text-sm mb-2 font-medium">Contraseña</label>
+          <label className="flex items-center gap-2 text-[#C5A059] text-sm mb-2 font-medium">
+            <Lock className="w-4 h-4" />
+            Contraseña
+          </label>
           <div className="relative">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all"
+              className="w-full px-4 py-3 pr-12 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all"
               placeholder="••••••••"
             />
-            <Lock className="absolute right-3 top-3 w-4 h-4 text-white/40" />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
           </div>
         </div>
 
         {error && <p className="text-sm text-red-400">{error}</p>}
-        {info && <p className="text-sm text-green-400">{info}</p>}
 
         <div className="flex items-center justify-between gap-4">
           <button
@@ -145,15 +142,12 @@ export default function LoginForm() {
           >
             {loading ? 'Iniciando...' : 'Iniciar sesión'}
           </button>
-
-          <button
-            type="button"
-            onClick={handleReset}
-            disabled={loading}
-            className="px-4 py-3 rounded-xl bg-white/5 text-white/80"
-          >
-            Olvidé mi contraseña
-          </button>
+        </div>
+        
+        <div className="mt-4 p-3 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/20">
+          <p className="text-xs text-white/80 text-center">
+            ¿Problemas para iniciar sesión? Contacta al administrador para soporte
+          </p>
         </div>
       </form>
 

@@ -12,9 +12,9 @@ export function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-3 gap-12 mb-12">
           {/* Logo & Description */}
-          <div className="text-center md:text-left">
+          <div className="text-center md:text-left logo-container">
             <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/huajsapata.png-ETs04yCnOGaA9a5tqHdj4RSxflUMNS.jpeg"
+              src="/huajsapata_negro.png"
               alt="Morenada Huajsapata"
               width={100}
               height={100}

@@ -71,33 +71,24 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 text-center">
-        {/* Logos */}
-        <div className="flex items-center justify-center gap-6 mb-8">
-          <Image
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/huajsapata.png-ETs04yCnOGaA9a5tqHdj4RSxflUMNS.jpeg"
-            alt="Logo Morenada Huajsapata"
-            width={120}
-            height={120}
-            loading="eager"
-            className="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow-2xl"
-          />
-        </div>
+        {/* Espaciador para mantener la posición del título */}
+        <div className="h-20 md:h-28 mb-8" aria-hidden="true" />
 
-        {/* Main Title */}
-        <h1 className="font-[family-name:var(--font-cinzel)] text-4xl md:text-6xl lg:text-7xl font-bold mb-4 tracking-wide uppercase">
-          <span className="text-gold-gradient">Morenada Huajsapata</span>
+{/* Main Title */}
+        <h1 className="font-[family-name:var(--font-cinzel)] text-4xl md:text-6xl lg:text-7xl font-bold mb-4 tracking-wide uppercase drop-shadow-lg">
+          <span className="text-gold-gradient drop-shadow-xl">Morenada Huajsapata</span>
         </h1>
-        <h2 className="font-[family-name:var(--font-cinzel)] text-xl md:text-2xl lg:text-3xl font-light mb-6 tracking-widest italic text-white/90">
+        <h2 className="font-[family-name:var(--font-cinzel)] text-xl md:text-2xl lg:text-3xl font-light mb-6 tracking-widest italic text-white drop-shadow-md">
           Herencia que trasciende generaciones
         </h2>
         
-        <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8 font-light">
+        <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-8 font-medium drop-shadow-md">
           Gestión 2026 - 2027 | Festividad Virgen de la Candelaria
         </p>
 
         {/* Countdown */}
         <div className="mb-10">
-          <p className="text-[#C5A059] text-sm uppercase tracking-widest mb-4">
+          <p className="text-[#C5A059] text-sm uppercase tracking-widest mb-4 drop-shadow-lg">
             Cuenta regresiva para la Candelaria 2027
           </p>
           {mounted ? (
@@ -107,10 +98,6 @@ export function HeroSection() {
               <CountdownUnit value={timeLeft.hours} label="Horas" />
               <span className="text-3xl text-[#C5A059] font-light animate-pulse-glow">:</span>
               <CountdownUnit value={timeLeft.minutes} label="Min" />
-              <span className="text-3xl text-[#C5A059] font-light animate-pulse-glow hidden md:block">:</span>
-              <div className="hidden md:block">
-                <CountdownUnit value={timeLeft.seconds} label="Seg" />
-              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center gap-3 md:gap-6">
@@ -119,10 +106,6 @@ export function HeroSection() {
               <CountdownUnit value={0} label="Horas" />
               <span className="text-3xl text-[#C5A059] font-light animate-pulse-glow">:</span>
               <CountdownUnit value={0} label="Min" />
-              <span className="text-3xl text-[#C5A059] font-light animate-pulse-glow hidden md:block">:</span>
-              <div className="hidden md:block">
-                <CountdownUnit value={0} label="Seg" />
-              </div>
             </div>
           )}
         </div>
@@ -132,18 +115,18 @@ export function HeroSection() {
           onClick={navigateToRegistration}
           className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-gradient-to-r from-[#E91E8C] to-[#C5156F] rounded-full btn-glow transition-all duration-300 hover:scale-105"
         >
-          <span className="relative z-10">Inscribirme y Ser Leyenda</span>
+          <span className="relative z-10">Vive la magia de la Candelaria</span>
           <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#E91E8C] to-[#C5156F] blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
         </button>
 
         {/* Secondary Info */}
-        <p className="mt-6 text-[#4FB8C4]/80 text-sm">
-          Más de 500 danzantes unidos por la tradición
+        <p className="mt-6 text-[#4FB8C4] text-sm drop-shadow-md">
+          Únete a la familia de Morenada Huajsapata
         </p>
 
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <ChevronDown className="w-8 h-8 text-[#C5A059]/60" />
+          <ChevronDown className="w-8 h-8 text-[#C5A059]" />
         </div>
       </div>
     </section>
@@ -153,10 +136,10 @@ export function HeroSection() {
 function CountdownUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="countdown-digit rounded-xl px-4 py-3 md:px-6 md:py-4 min-w-[70px] md:min-w-[90px] backdrop-blur-lg">
-      <div className="text-3xl md:text-5xl font-bold text-white font-[family-name:var(--font-cinzel)]">
+      <div className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg font-[family-name:var(--font-cinzel)]">
         {value.toString().padStart(2, "0")}
       </div>
-      <div className="text-xs md:text-sm text-[#4FB8C4] uppercase tracking-wider">
+      <div className="text-xs md:text-sm text-[#4FB8C4] uppercase tracking-wider drop-shadow-md">
         {label}
       </div>
     </div>
