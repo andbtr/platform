@@ -27,7 +27,7 @@ type BlocksTableProps = {
 }
 
 export function BlocksTable({ onOpenModal, refreshKey }: BlocksTableProps) {
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
   const [blocks, setBlocks] = useState<BlockItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")

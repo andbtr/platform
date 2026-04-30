@@ -24,7 +24,7 @@ type GalleryTableProps = {
 }
 
 export function GalleryTable({ onOpenModal, refreshKey }: GalleryTableProps) {
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
   const [photos, setPhotos] = useState<PhotoItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")

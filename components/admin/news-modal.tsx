@@ -32,7 +32,7 @@ type NewsModalProps = {
 }
 
 export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalProps) {
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")

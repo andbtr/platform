@@ -23,7 +23,7 @@ type PhotoItem = {
 type UploadStatus = "pending" | "uploading" | "success" | "error"
 
 export default function GalleryPage() {
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false)
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false)
   const [editPhoto, setEditPhoto] = useState<PhotoItem | null>(null)

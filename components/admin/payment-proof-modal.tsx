@@ -26,7 +26,7 @@ export function PaymentProofModal({
   const [zoom, setZoom] = useState(1)
   const [showRejectionInput, setShowRejectionInput] = useState(false) // New state for rejection input
   const [rejectionReason, setRejectionReason] = useState<string>('') // New state for rejection reason
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
 
   useEffect(() => {
     if (isOpen && selectedPago?.proofUrl && !selectedPago.paymentProofUrl) {

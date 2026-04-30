@@ -23,7 +23,7 @@ type News = {
 const INITIAL_LOAD = 8
 
 export function NewsSection() {
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
   const [news, setNews] = useState<News[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedNews, setSelectedNews] = useState<News | null>(null)

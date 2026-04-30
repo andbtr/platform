@@ -13,7 +13,7 @@ const INITIAL_LOAD = 8
 const LOAD_MORE = 8
 
 export function GallerySection() {
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)

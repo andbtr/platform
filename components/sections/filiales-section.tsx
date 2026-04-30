@@ -16,7 +16,7 @@ type Branch = {
 }
 
 export function FilialesSection() {
-  const supabase = useSupabase()
+  const { supabase } = useSupabase()
   const [filiales, setFiliales] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
 

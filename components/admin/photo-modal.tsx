@@ -27,7 +27,7 @@ type PhotoModalProps = {
 }
 
 export function PhotoModal({ isOpen, setIsOpen, editPhoto, onSuccess }: PhotoModalProps) {
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
   const [files, setFiles] = useState<File[]>([])
   const [title, setTitle] = useState("")
   const [active, setActive] = useState(true)

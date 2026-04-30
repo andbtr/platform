@@ -33,7 +33,7 @@ type NewsTableProps = {
 }
 
 export function NewsTable({ onOpenModal, refreshKey }: NewsTableProps) {
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
   const [news, setNews] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")

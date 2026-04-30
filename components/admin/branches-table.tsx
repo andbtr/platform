@@ -29,7 +29,7 @@ type BranchesTableProps = {
 }
 
 export function BranchesTable({ onOpenModal, refreshKey }: BranchesTableProps) {
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
   const [branches, setBranches] = useState<BranchItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")

@@ -3,8 +3,7 @@ import { useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { useSupabaseConfig } from "@/components/providers/supabase-provider"
-import { createSupabaseClient } from "@/lib/supabase"
+import { useSupabase } from "@/components/providers/supabase-provider"
 
 interface PaymentHistoryProps {
   payments: any[]
@@ -16,15 +15,13 @@ interface PaymentHistoryProps {
 export function PaymentHistory({ payments, paymentsLoading, paymentsError, onReportPaymentClick }: PaymentHistoryProps) {
   const [selectedPaymentProof, setSelectedPaymentProof] = useState<string | null>(null)
   const [isGeneratingUrl, setIsGeneratingUrl] = useState(false)
-  const { supabaseUrl, supabaseAnonKey } = useSupabaseConfig()
+  const { supabase } = useSupabase()
 
   const handleViewPaymentProof = async (path: string) => {
-    if (!path || !supabaseUrl || !supabaseAnonKey) return
+    if (!path || !supabase) return
     
     setIsGeneratingUrl(true)
     try {
-      const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
-      
       const { data, error } = await supabase.storage
         .from('payment-proofs')
         .createSignedUrl(path, 60)

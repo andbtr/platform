@@ -27,7 +27,7 @@ type BlocksModalProps = {
 }
 
 export function BlocksModal({ isOpen, setIsOpen, editBlock, onSuccess }: BlocksModalProps) {
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
   const [name, setName] = useState("")
   const [totalPrice, setTotalPrice] = useState(0)
   const [isActive, setIsActive] = useState(true)

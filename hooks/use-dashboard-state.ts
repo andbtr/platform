@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { useSupabaseConfig } from "@/components/providers/supabase-provider"
-import { createSupabaseClient } from "@/lib/supabase"
+import { useSupabase } from "@/components/providers/supabase-provider"
 
 export function useDashboardState({ initialSocio, initialPayments, user }: { initialSocio: any; initialPayments: any[]; user: any }) {
-  const { supabaseUrl, supabaseAnonKey } = useSupabaseConfig()
+  const { supabase } = useSupabase()
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
   const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null)
   const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null)
@@ -111,11 +110,10 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
   }, [payments, cuotasTotalesCalculadas, initialSocio.registrationDate, initialSocio.montoMensual])
 
   const fetchPayments = async () => {
-    if (!user || !supabaseUrl || !supabaseAnonKey) return
+    if (!user || !supabase) return
     
     setPaymentsLoading(true)
     try {
-      const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
       const { data, error } = await supabase
         .from("payments")
         .select("*")
@@ -136,9 +134,7 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
 
   // Escuchar cambios en tiempo real para estados (APPROVED, REJECTED)
   useEffect(() => {
-    if (!user || !supabaseUrl || !supabaseAnonKey) return
-
-    const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
+    if (!user || !supabase) return
 
     const channel = supabase
       .channel('payment_updates')
@@ -159,7 +155,7 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [user, supabaseUrl, supabaseAnonKey])
+  }, [user, supabase])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -185,7 +181,7 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
 
   const handleSubmitPayment = async () => {
     setSubmitAttempted(true)
-    if (!paymentProofFile || !user) return
+    if (!paymentProofFile || !user || !supabase) return
 
     if (!bankAccountName.trim()) {
       setSubmitError("El nombre de la cuenta bancaria es obligatorio")
@@ -240,13 +236,6 @@ export function useDashboardState({ initialSocio, initialPayments, user }: { ini
       if (paymentProofFile.size > maxSize) {
         throw new Error('La imagen debe ser menor a 2MB')
       }
-
-      // Crear cliente de Supabase usando el provider/config
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('Configuración de Supabase no encontrada')
-      }
-      
-      const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
 
       // Generar path exacto: payments/{user.id}/{uuid}
       const fileExtension = paymentProofFile.name.split('.').pop()

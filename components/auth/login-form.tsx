@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useSupabase } from "@/components/providers/supabase-provider"
 
 export default function LoginForm() {
-  const supabase = useSupabase()
+  const {supabase} = useSupabase()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)

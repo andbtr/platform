@@ -14,20 +14,33 @@ type Block = {
 }
 
 export function BlocksSection() {
-  const supabase = useSupabase()
+  const { supabase } = useSupabase()
   const [blocks, setBlocks] = useState<Block[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchBlocks() {
-      const { data } = await supabase
-        .from('blocks')
-        .select('id, name, total_price, image_url')
-        .eq('is_active', true)
-      
-      if (data) setBlocks(data)
-      setLoading(false)
+      try {
+        setLoading(true)
+        setError(null)
+
+        const { data, error } = await supabase
+          .from("blocks")
+          .select("id, name, total_price, image_url")
+          .eq("is_active", true)
+
+        if (error) throw error
+
+        setBlocks(data ?? [])
+      } catch (err) {
+        console.error("Error fetching blocks:", err)
+        setError("No se pudieron cargar los bloques.")
+      } finally {
+        setLoading(false)
+      }
     }
+
     fetchBlocks()
   }, [supabase])
 
@@ -48,20 +61,26 @@ export function BlocksSection() {
             <span className="text-gold-gradient">Bloques Morenada Huajsapata</span>
           </h2>
           <p className="text-white/70 max-w-2xl mx-auto text-lg">
-            Conoce los bloques que conforman nuestra Morenada. 
+            Conoce los bloques que conforman nuestra Morenada.
             Cada uno con su identidad, historia y espíritu.
           </p>
         </div>
 
+        {error && (
+          <div className="text-center py-12">
+            <p className="text-red-400 mb-4">{error}</p>
+          </div>
+        )}
+
         {/* Empty State */}
-        {!loading && blocks.length === 0 && !error && (
+        {!loading && !error && blocks.length === 0 && (
           <div className="text-center py-12">
             <p className="text-white/60 mb-4">No hay bloques disponibles en este momento.</p>
           </div>
         )}
 
-{/* Blocks Grid */}
-        {!loading && blocks.length > 0 && (
+        {/* Blocks Grid */}
+        {!loading && !error && blocks.length > 0 && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {blocks.map((block) => (
               <div

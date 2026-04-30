@@ -13,7 +13,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 export function Navigation() {
-  const supabase = useSupabase()
+  const { supabase } = useSupabase()
   const router = useRouter()
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
@@ -38,7 +38,7 @@ export function Navigation() {
   const [userName, setUserName] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!user) return
+    if (!user || !supabase) return
     let mounted = true
     ;(async () => {
       const { data } = await supabase
@@ -51,7 +51,7 @@ export function Navigation() {
       }
     })()
     return () => { mounted = false }
-  }, [user])
+  }, [user, supabase])
 
   const displayNameToUse = userName || displayName
 
@@ -65,13 +65,9 @@ export function Navigation() {
   const isSectionActive = (hash: string) => pathname === "/" && currentHash === hash
 
   useEffect(() => {
+    if (!user || !supabase) return
     let mounted = true
     ;(async () => {
-      if (!user) {
-        if (mounted) setIsAdmin(false)
-        return
-      }
-
       const meta = (user as any).user_metadata ?? {}
       if (meta.is_admin || meta.isAdmin || meta.role === 'admin') {
         if (mounted) setIsAdmin(true)
@@ -91,7 +87,7 @@ export function Navigation() {
       }
     })()
     return () => { mounted = false }
-  }, [user])
+  }, [user, supabase])
 
   useEffect(() => {
     const updateHash = () => setCurrentHash(window.location.hash)

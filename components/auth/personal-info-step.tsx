@@ -47,7 +47,7 @@ export function PersonalInfoStep({ formData, setFormData, errors }: any) {
               "w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all",
               errors.apellidos ? "border-red-500" : "border-white/10"
             )}
-            placeholder="Quispe Mamani"
+            placeholder="Pérez García"
           />
           {errors.apellidos && <p className="text-red-400 text-xs mt-1">{errors.apellidos}</p>}
         </div>
@@ -55,17 +55,16 @@ export function PersonalInfoStep({ formData, setFormData, errors }: any) {
 
       <div className="grid md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-[#C5A059] text-sm mb-2 font-medium">DNI</label>
+          <label className="block text-[#C5A059] text-sm mb-2 font-medium">Número de Documento de Identidad</label>
           <input
             type="text"
             value={formData.dni}
-            onChange={(e) => setFormData({ ...formData, dni: e.target.value.replace(/\D/g, "").slice(0, 8) })}
+            onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
             className={cn(
               "w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all",
               errors.dni ? "border-red-500" : "border-white/10"
             )}
-            placeholder="12345678"
-            maxLength={8}
+            placeholder="Ingresa tu documento"
           />
           {errors.dni && <p className="text-red-400 text-xs mt-1">{errors.dni}</p>}
         </div>
@@ -96,39 +95,24 @@ export function PersonalInfoStep({ formData, setFormData, errors }: any) {
               "w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all",
               errors.email ? "border-red-500" : "border-white/10"
             )}
-            placeholder="tu@email.com"
+            placeholder="juan.perez@ejemplo.com"
           />
           {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
         </div>
         <div>
-          <label className="block text-[#C5A059] text-sm mb-2 font-medium">Contraseña</label>
+          <label className="block text-[#C5A059] text-sm mb-2 font-medium">Ciudad</label>
           <input
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            type="text"
+            value={formData.ciudad}
+            onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
             className={cn(
               "w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all",
-              errors.password ? "border-red-500" : "border-white/10"
+              errors.ciudad ? "border-red-500" : "border-white/10"
             )}
-            placeholder="••••••••"
+            placeholder="p.e Lima, Arequipa, Cusco..."
           />
-          {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
+          {errors.ciudad && <p className="text-red-400 text-xs mt-1">{errors.ciudad}</p>}
         </div>
-      </div>
-
-      <div>
-        <label className="block text-[#C5A059] text-sm mb-2 font-medium">Ciudad de Residencia</label>
-        <input
-          type="text"
-          value={formData.residencia}
-          onChange={(e) => setFormData({ ...formData, residencia: e.target.value })}
-          className={cn(
-            "w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#4FB8C4] transition-all",
-            errors.residencia ? "border-red-500" : "border-white/10"
-          )}
-          placeholder="Puno, Lima, Arequipa..."
-        />
-        {errors.residencia && <p className="text-red-400 text-xs mt-1">{errors.residencia}</p>}
       </div>
     </div>
   )
