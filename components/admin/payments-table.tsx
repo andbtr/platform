@@ -146,7 +146,7 @@ export function PaymentsTable({
                             </p>
                             {pago.bankAccountName && (
                                 <p className="text-xs text-muted-foreground mt-0.5">
-                                  Titular: {pago.bankAccountName}
+                                  Titular de la cuenta: {pago.bankAccountName}
                                 </p>
                             )}
                             {pago.adminNotes && (

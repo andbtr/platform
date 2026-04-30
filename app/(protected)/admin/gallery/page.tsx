@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils"
 type PhotoItem = {
   id: string
   title: string
-  description: string | null
   image_url: string
   active: boolean
   created_at: string
@@ -31,6 +30,7 @@ export default function GalleryPage() {
   const [refreshKey, setRefreshKey] = useState(0)
 
   const [bulkFiles, setBulkFiles] = useState<File[]>([])
+  const [bulkTitle, setBulkTitle] = useState("")
   const [uploadStatus, setUploadStatus] = useState<Map<string, UploadStatus>>(new Map())
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -78,6 +78,11 @@ export default function GalleryPage() {
   const handleBulkUpload = async () => {
     if (!supabase || bulkFiles.length === 0) return
 
+    if (!bulkTitle.trim()) {
+      setError("El título es requerido")
+      return
+    }
+
     setError(null)
     setSuccess(null)
     
@@ -106,13 +111,10 @@ export default function GalleryPage() {
         }
 
         const { data: { publicUrl } } = supabase.storage.from("photos").getPublicUrl(filePath)
-        
-        const title = file.name.replace(/\.[^/.]+$/, "")
 
         const { error: dbError } = await supabase.from("photos").insert({
-          title,
+          title: bulkTitle,
           image_url: publicUrl,
-          description: "",
           active: true,
         })
 
@@ -134,6 +136,7 @@ export default function GalleryPage() {
     if (uploaded === bulkFiles.length) {
       setSuccess(`¡${uploaded} imágenes subidas con éxito!`)
       setBulkFiles([])
+      setBulkTitle("")
       handleSuccess()
       setTimeout(() => {
         setIsBulkModalOpen(false)
@@ -147,6 +150,7 @@ export default function GalleryPage() {
 
   const clearBulkFiles = () => {
     setBulkFiles([])
+    setBulkTitle("")
     setUploadStatus(new Map())
     setProgress(0)
     setError(null)
@@ -224,6 +228,18 @@ export default function GalleryPage() {
             </div>
 
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#C5A059] mb-2">
+                  Título <span className="text-white/40">(se aplicará a todas las imágenes)</span>
+                </label>
+                <Input
+                  value={bulkTitle}
+                  onChange={(e) => setBulkTitle(e.target.value)}
+                  placeholder="Ej: Procesión 2026, Ensayo general, etc..."
+                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-[#C5A059] mb-2">
                   Seleccionar Imágenes
@@ -306,7 +322,7 @@ export default function GalleryPage() {
                 </Button>
                 <Button 
                   onClick={handleBulkUpload} 
-                  disabled={bulkFiles.length === 0 || Array.from(uploadStatus.values()).some(s => s === "uploading")}
+                  disabled={!bulkTitle.trim() || bulkFiles.length === 0 || Array.from(uploadStatus.values()).some(s => s === "uploading")}
                   className="flex-1 bg-gradient-to-r from-[#4FB8C4] to-[#1E6B7E]"
                 >
                   {Array.from(uploadStatus.values()).some(s => s === "uploading") ? (

@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Terminal, UploadCloud, X } from "lucide-react"
+import { UploadCloud, X } from "lucide-react"
 import Image from "next/image"
 
 type NewsItem = {
@@ -43,8 +43,8 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const { toast } = useToast()
 
   useEffect(() => {
     if (editNews) {
@@ -127,7 +127,6 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
 
     setLoading(true)
     setError(null)
-    setSuccess(null)
 
     let imageUrl = previewUrl
 
@@ -175,7 +174,7 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
           throw new Error(`Error al actualizar la noticia: ${dbError.message}`)
         }
 
-        setSuccess("¡Noticia actualizada con éxito!")
+        toast({ title: "Éxito", description: "Noticia actualizada con éxito!" })
       } else {
         const { error: dbError } = await supabase.from("news").insert({
           title,
@@ -191,7 +190,7 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
           throw new Error(`Error al guardar la noticia: ${dbError.message}`)
         }
 
-        setSuccess("¡Noticia creada con éxito!")
+        toast({ title: "Éxito", description: "Noticia creada con éxito!" })
         resetForm()
       }
 
@@ -202,7 +201,6 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
           setIsOpen(false)
           resetForm()
         }
-        setSuccess(null)
       }, 1500)
     } catch (err: any) {
       setError(err.message)
@@ -215,19 +213,22 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
     setIsOpen(false)
     resetForm()
     setError(null)
-    setSuccess(null)
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0a1628] border-white/10">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gold-gradient">
+      <DialogContent className="w-[90vw] max-w-6xl max-h-[85vh] bg-[#0a1628] border-white/10 p-0 flex flex-col overflow-hidden">
+        <DialogTitle className="sr-only">
+          {editNews ? "Editar Noticia" : "Crear Nueva Noticia"}
+        </DialogTitle>
+        <div className="flex-shrink-0 bg-gradient-to-r from-[#0a1628] to-[#0d1e35] p-6 border-b border-white/10">
+          <h2 className="text-3xl font-bold text-gold-gradient font-[family-name:var(--font-cinzel)]">
             {editNews ? "Editar Noticia" : "Crear Nueva Noticia"}
-          </DialogTitle>
-        </DialogHeader>
+          </h2>
+          <p className="text-white/50 mt-1">Completa los datos de la noticia</p>
+        </div>
 
-        <div className="space-y-4 py-4">
+        <div className="flex-1 p-6 overflow-y-auto">
           {error && (
             <Alert variant="destructive" className="bg-destructive/10 border-destructive/30 rounded-xl">
               <Terminal className="h-4 w-4" />
@@ -235,30 +236,39 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          
-          {success && (
-            <Alert className="bg-[#4FB8C4]/10 border-[#4FB8C4]/30 rounded-xl">
-              <Terminal className="h-4 w-4 text-[#4FB8C4]" />
-              <AlertTitle className="text-[#4FB8C4]">Éxito</AlertTitle>
-              <AlertDescription>{success}</AlertDescription>
-            </Alert>
-          )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="title" className="text-[#C5A059] text-sm font-medium mb-2">
-                  Título de la Noticia
-                </Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  disabled={loading}
-                  required
-                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:ring-2 focus:ring-[#4FB8C4] focus:border-transparent"
-                  placeholder="Escribe un título..."
-                />
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            {/* Columna Izquierda - Contenido */}
+            <div className="xl:col-span-2 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="title" className="text-[#C5A059] text-sm font-medium mb-2">
+                    Título de la Noticia
+                  </Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    disabled={loading}
+                    required
+                    className="bg-white/10 border border-white/10 rounded-xl px-4 py-4 text-white placeholder-white/30 focus:ring-2 focus:ring-[#4FB8C4] focus:border-transparent text-lg w-full"
+                    placeholder="Escribe un título..."
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="type" className="text-[#C5A059] text-sm font-medium mb-2">
+                    Tipo
+                  </Label>
+                  <Input
+                    id="type"
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    disabled={loading}
+                    className="bg-white/10 border border-white/10 rounded-xl px-4 py-4 text-white placeholder-white/30 focus:ring-2 focus:ring-[#4FB8C4] w-full overflow-x-auto"
+                    placeholder="general"
+                  />
+                </div>
               </div>
 
               <div>
@@ -271,8 +281,7 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
                   onChange={(e) => setContent(e.target.value)}
                   disabled={loading}
                   required
-                  rows={4}
-                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:ring-2 focus:ring-[#4FB8C4] focus:border-transparent resize-none"
+                  className="bg-white/10 border border-white/10 rounded-xl px-4 py-4 text-white placeholder-white/30 focus:ring-2 focus:ring-[#4FB8C4] focus:border-transparent resize-none text-base h-48 w-full overflow-y-auto"
                   placeholder="Contenido de la noticia..."
                 />
               </div>
@@ -287,7 +296,7 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
                   value={link}
                   onChange={(e) => setLink(e.target.value)}
                   disabled={loading}
-                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:ring-2 focus:ring-[#4FB8C4] focus:border-transparent"
+                  className="bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:ring-2 focus:ring-[#4FB8C4] focus:border-transparent w-full overflow-x-auto"
                   placeholder="https://..."
                 />
               </div>
@@ -301,18 +310,18 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
               </div>
             </div>
 
-            <div className="space-y-4">
+            {/* Columna Derecha - Imagen y configuración */}
+            <div className="xl:col-span-1 space-y-6">
               <div>
                 <Label className="text-[#C5A059] text-sm font-medium mb-2">Imagen de Portada</Label>
                 
                 {previewUrl ? (
-                  <div className="relative group">
+                  <div className="relative w-full h-48 md:h-64 rounded-xl overflow-hidden bg-white/10">
                     <Image
                       src={previewUrl}
                       alt="Preview"
-                      width={300}
-                      height={160}
-                      className="w-full h-40 object-cover rounded-xl"
+                      fill
+                      className="object-cover"
                     />
                     <div className="absolute top-2 right-2 flex gap-2">
                       <label className="bg-[#4FB8C4]/80 text-white rounded-full p-1.5 hover:bg-[#4FB8C4] transition-colors cursor-pointer">
@@ -339,12 +348,13 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
                     </div>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#4FB8C4]/50 hover:bg-white/5 transition-all">
+                  <label className="flex flex-col items-center justify-center w-full h-56 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#4FB8C4]/50 hover:bg-white/5 transition-all">
                     <div className="flex flex-col items-center justify-center py-4 text-center">
-                      <UploadCloud className="h-8 w-8 text-white/30 group-hover:text-[#4FB8C4] mb-2" />
+                      <UploadCloud className="h-12 w-12 text-white/30 mb-2" />
                       <p className="text-sm text-white/60">
                         <span className="text-[#4FB8C4]">Sube un archivo</span>
                       </p>
+                      <p className="text-xs text-white/40 mt-1">PNG, JPG hasta 3MB</p>
                     </div>
                     <input
                       type="file"
@@ -357,41 +367,25 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="priority" className="text-[#C5A059] text-sm font-medium mb-2">
-                    Prioridad
-                  </Label>
-                  <Input
-                    id="priority"
-                    type="number"
-                    value={priority}
-                    onChange={(e) => setPriority(parseInt(e.target.value, 10) || 1)}
-                    disabled={loading}
-                    min={1}
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-[#4FB8C4]"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="type" className="text-[#C5A059] text-sm font-medium mb-2">
-                    Tipo
-                  </Label>
-                  <Input
-                    id="type"
-                    value={type}
-                    onChange={(e) => setType(e.target.value)}
-                    disabled={loading}
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:ring-2 focus:ring-[#4FB8C4]"
-                    placeholder="general"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="priority" className="text-[#C5A059] text-sm font-medium mb-2">
+                  Prioridad
+                </Label>
+<Input
+                  id="priority"
+                  type="number"
+                  value={priority}
+                  onChange={(e) => setPriority(parseInt(e.target.value, 10) || 1)}
+                  disabled={loading}
+                  min={1}
+                  className="bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-[#4FB8C4] w-full overflow-x-auto"
+                />
               </div>
             </div>
           </div>
         </div>
 
-        <DialogFooter>
+        <div className="flex-shrink-0 border-t border-white/10 p-6 flex justify-end gap-4">
           <Button variant="outline" onClick={handleClose} disabled={loading}>
             Cancelar
           </Button>
@@ -402,7 +396,7 @@ export function NewsModal({ isOpen, setIsOpen, editNews, onSuccess }: NewsModalP
           >
             {loading ? "Guardando..." : editNews ? "Actualizar" : "Crear Noticia"}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   )

@@ -5,6 +5,7 @@ import { useSupabase } from "@/components/providers/supabase-provider"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { 
   Eye, EyeOff, Edit, Trash2, Plus, Search, Image as ImageIcon 
 } from "lucide-react"
@@ -12,7 +13,6 @@ import {
 type PhotoItem = {
   id: string
   title: string
-  description: string | null
   image_url: string
   active: boolean
   created_at: string
@@ -29,6 +29,7 @@ export function GalleryTable({ onOpenModal, refreshKey }: GalleryTableProps) {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all")
+  const [photoToDelete, setPhotoToDelete] = useState<PhotoItem | null>(null)
 
   useEffect(() => {
     fetchPhotos()
@@ -64,23 +65,54 @@ export function GalleryTable({ onOpenModal, refreshKey }: GalleryTableProps) {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!supabase) return
-    if (!confirm("¿Estás seguro de que deseas eliminar esta imagen?")) return
+  const confirmDelete = (photo: PhotoItem) => {
+    setPhotoToDelete(photo)
+  }
 
-    const { error } = await supabase
+  const handleDelete = async () => {
+    if (!supabase || !photoToDelete) return
+
+    const imageUrl = photoToDelete.image_url
+
+    // Extraer el path del archivo de la URL
+    const match = imageUrl.match(/photos\/(.+)$/)
+    const filePath = match ? match[1] : null
+
+    if (!filePath) {
+      console.error('No se pudo extraer el path de la imagen:', imageUrl)
+      alert('Error: URL de imagen inválida')
+      return
+    }
+
+    // Eliminar imagen del storage
+    const { error: storageError } = await supabase.storage
+      .from('photos')
+      .remove([filePath])
+
+    if (storageError) {
+      console.error('Error eliminando imagen del storage:', storageError)
+      alert('Error al eliminar la imagen del almacenamiento')
+      return
+    }
+
+    // Eliminar registro de la base de datos
+    const { error: dbError } = await supabase
       .from("photos")
       .delete()
-      .eq("id", id)
+      .eq("id", photoToDelete.id)
 
-    if (!error) {
-      setPhotos(photos.filter(p => p.id !== id))
+    if (dbError) {
+      console.error('Error eliminando registro:', dbError)
+      alert('Error al eliminar el registro de la base de datos')
+      return
     }
+
+    setPhotos(photos.filter(p => p.id !== photoToDelete.id))
+    setPhotoToDelete(null)
   }
 
   const filteredPhotos = photos.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase())
     
     if (filterActive === "active") return matchesSearch && item.active
     if (filterActive === "inactive") return matchesSearch && !item.active
@@ -160,6 +192,7 @@ export function GalleryTable({ onOpenModal, refreshKey }: GalleryTableProps) {
                   src={item.image_url}
                   alt={item.title}
                   fill
+                  loading="eager"
                   className="object-cover transition-transform group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -192,7 +225,7 @@ export function GalleryTable({ onOpenModal, refreshKey }: GalleryTableProps) {
                   <Button
                     variant="secondary"
                     size="icon"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => confirmDelete(item)}
                     className="h-8 w-8 bg-black/50 hover:bg-red-600/70"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -201,15 +234,47 @@ export function GalleryTable({ onOpenModal, refreshKey }: GalleryTableProps) {
               </div>
               
               <div className="p-4">
-                <h3 className="font-semibold text-white truncate">{item.title}</h3>
-                {item.description && (
-                  <p className="text-sm text-white/60 line-clamp-2 mt-1">{item.description}</p>
-                )}
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-white truncate">{item.title}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      item.active 
+                        ? "bg-green-500/20 text-green-400" 
+                        : "bg-red-500/20 text-red-400"
+                    }`}>
+                      {item.active ? "Activa" : "Oculta"}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!photoToDelete} onOpenChange={(open) => !open && setPhotoToDelete(null)}>
+        <AlertDialogContent className="glass-card border-gold-glow">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-[family-name:var(--font-cinzel)] text-gold-gradient">
+              ¿Eliminar imagen?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-white/70">
+              ¿Estás seguro de que deseas eliminar esta imagen? Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

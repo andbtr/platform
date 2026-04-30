@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { useSupabase } from "@/components/providers/supabase-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -15,7 +14,6 @@ import Image from "next/image"
 type PhotoItem = {
   id: string
   title: string
-  description: string | null
   image_url: string
   active: boolean
   created_at: string
@@ -30,71 +28,76 @@ type PhotoModalProps = {
 
 export function PhotoModal({ isOpen, setIsOpen, editPhoto, onSuccess }: PhotoModalProps) {
   const supabase = useSupabase()
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
   const [active, setActive] = useState(true)
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewUrls, setPreviewUrls] = useState<string[]>([])
 
   useEffect(() => {
     if (editPhoto) {
       setTitle(editPhoto.title)
-      setDescription(editPhoto.description || "")
       setActive(editPhoto.active)
-      setPreviewUrl(editPhoto.image_url)
-      setFile(null)
+      setPreviewUrls([editPhoto.image_url])
+      setFiles([])
     } else {
       resetForm()
     }
   }, [editPhoto, isOpen])
 
   const resetForm = () => {
-    setFile(null)
-    setPreviewUrl(null)
+    setFiles([])
+    setPreviewUrls([])
     setTitle("")
-    setDescription("")
     setActive(true)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (!selectedFile) return
+    const selectedFiles = Array.from(e.target.files || [])
+    if (selectedFiles.length === 0) return
 
-    if (!selectedFile.type.startsWith("image/")) {
-      setError("El archivo debe ser una imagen.")
-      return
-    }
-    if (selectedFile.size > 3 * 1024 * 1024) {
-      setError("La imagen no debe pesar más de 3MB.")
-      return
-    }
+    const validFiles = selectedFiles.filter(file => {
+      if (!file.type.startsWith("image/")) {
+        setError("Todos los archivos deben ser imágenes.")
+        return false
+      }
+      if (file.size > 3 * 1024 * 1024) {
+        setError("Las imágenes no deben pesar más de 3MB.")
+        return false
+      }
+      return true
+    })
 
-    setFile(selectedFile)
+    if (validFiles.length === 0) return
+
+    setFiles(validFiles)
     setError(null)
 
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string)
-    }
-    reader.readAsDataURL(selectedFile)
+    // Crear preview URLs
+    const readers = validFiles.map(file => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.readAsDataURL(file)
+      })
+    })
+
+    Promise.all(readers).then(urls => setPreviewUrls(urls))
   }
 
-  const removeFile = () => {
-    setFile(null)
-    if (editPhoto?.image_url) {
-      setPreviewUrl(editPhoto.image_url)
-    } else {
-      setPreviewUrl(null)
-    }
+  const removeFile = (index: number) => {
+    const newFiles = files.filter((_, i) => i !== index)
+    const newPreviews = previewUrls.filter((_, i) => i !== index)
+    setFiles(newFiles)
+    setPreviewUrls(newPreviews)
   }
 
   const handleRemoveCurrentImage = () => {
-    setFile(null)
-    setPreviewUrl(null)
+    setFiles([])
+    setPreviewUrls([])
   }
 
   const handleSubmit = async () => {
@@ -108,8 +111,8 @@ export function PhotoModal({ isOpen, setIsOpen, editPhoto, onSuccess }: PhotoMod
       return
     }
 
-    if (!editPhoto && !file && !previewUrl) {
-      setError("Por favor, selecciona una imagen.")
+    if (!editPhoto && files.length === 0 && previewUrls.length === 0) {
+      setError("Por favor, selecciona al menos una imagen.")
       return
     }
 
@@ -117,42 +120,40 @@ export function PhotoModal({ isOpen, setIsOpen, editPhoto, onSuccess }: PhotoMod
     setError(null)
     setSuccess(null)
 
-    let imageUrl = previewUrl
-
     try {
-      if (file) {
-        const filePath = `gallery/${crypto.randomUUID()}`
-        const { error: uploadError } = await supabase.storage
-          .from("photos")
-          .upload(filePath, file)
+      // Si hay archivos nuevos para subir (modo múltiples)
+      if (files.length > 0) {
+        const uploads = files.map(async (file) => {
+          const filePath = `gallery/${crypto.randomUUID()}`
+          const { error: uploadError } = await supabase.storage
+            .from("photos")
+            .upload(filePath, file)
 
-        if (uploadError) {
-          throw new Error(`Error al subir la imagen: ${uploadError.message}`)
-        }
-
-        const { data: { publicUrl } } = supabase.storage.from("photos").getPublicUrl(filePath)
-        imageUrl = publicUrl
-
-        if (editPhoto?.image_url && editPhoto.image_url !== imageUrl) {
-          const oldPath = editPhoto.image_url.split('/').pop()
-          if (oldPath) {
-            await supabase.storage.from("photos").remove([`gallery/${oldPath}`])
+          if (uploadError) {
+            throw new Error(`Error al subir la imagen: ${uploadError.message}`)
           }
-        }
-      }
 
-      if (editPhoto && file && editPhoto.image_url) {
-        const oldPath = editPhoto.image_url.split('/').pop()
-        if (oldPath) {
-          await supabase.storage.from("photos").remove([`gallery/${oldPath}`])
-        }
-      }
+          const { data: { publicUrl } } = supabase.storage.from("photos").getPublicUrl(filePath)
+          
+          const { error: dbError } = await supabase.from("photos").insert({
+            title,
+            image_url: publicUrl,
+            active,
+          })
 
-      if (editPhoto) {
+          if (dbError) {
+            throw new Error(`Error al guardar la imagen: ${dbError.message}`)
+          }
+        })
+
+        await Promise.all(uploads)
+        setSuccess(`¡${files.length} imágenes subidas con éxito!`)
+        resetForm()
+      } else if (editPhoto && previewUrls.length > 0) {
+        // Editar imagen existente
         const { error: dbError } = await supabase.from("photos").update({
           title,
-          description: description || null,
-          image_url: imageUrl,
+          image_url: previewUrls[0],
           active,
         }).eq("id", editPhoto.id)
 
@@ -161,20 +162,6 @@ export function PhotoModal({ isOpen, setIsOpen, editPhoto, onSuccess }: PhotoMod
         }
 
         setSuccess("¡Imagen actualizada con éxito!")
-      } else {
-        const { error: dbError } = await supabase.from("photos").insert({
-          title,
-          description: description || null,
-          image_url: imageUrl,
-          active,
-        })
-
-        if (dbError) {
-          throw new Error(`Error al guardar la imagen: ${dbError.message}`)
-        }
-
-        setSuccess("¡Imagen subida con éxito!")
-        resetForm()
       }
 
       onSuccess()
@@ -226,66 +213,11 @@ export function PhotoModal({ isOpen, setIsOpen, editPhoto, onSuccess }: PhotoMod
             </Alert>
           )}
 
-          <div>
-            <Label className="text-[#C5A059] text-sm font-medium mb-2">Imagen</Label>
-            
-            {previewUrl ? (
-              <div className="relative group">
-                <div className="relative aspect-video w-full rounded-xl overflow-hidden">
-                  <Image
-                    src={previewUrl}
-                    alt="Preview"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="absolute top-2 right-2 flex gap-2">
-                  <label className="bg-[#4FB8C4]/80 text-white rounded-full p-1.5 hover:bg-[#4FB8C4] transition-colors cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      disabled={loading}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleRemoveCurrentImage}
-                    className="p-1.5 bg-destructive/80 hover:bg-destructive rounded-full"
-                  >
-                    <X className="h-4 w-4 text-white" />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#4FB8C4]/50 hover:bg-white/5 transition-all">
-                <div className="flex flex-col items-center justify-center py-4 text-center">
-                  <UploadCloud className="h-10 w-10 text-white/30 mb-2" />
-                  <p className="text-sm text-white/60">
-                    <span className="text-[#4FB8C4]">Sube un archivo</span>
-                  </p>
-                  <p className="text-xs text-white/40 mt-1">PNG, JPG hasta 3MB</p>
-                </div>
-                <input
-                  type="file"
-                  className="sr-only"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  disabled={loading}
-                />
-              </label>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="title" className="text-[#C5A059] text-sm font-medium mb-2">
-              Título
+          {/* Título primero para que pueda escribirse antes de seleccionar imágenes */}
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-[#C5A059] text-sm font-medium">
+              Título {files.length > 1 ? "(se aplicará a todas las imágenes)" : ""}
+              <span className="text-red-400"> *</span>
             </Label>
             <Input
               id="title"
@@ -294,23 +226,70 @@ export function PhotoModal({ isOpen, setIsOpen, editPhoto, onSuccess }: PhotoMod
               disabled={loading}
               required
               className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:ring-2 focus:ring-[#4FB8C4] focus:border-transparent"
-              placeholder="Título de la imagen..."
+              placeholder="Ej: Procesión 2026, Ensayo general, etc..."
             />
           </div>
 
           <div>
-            <Label htmlFor="description" className="text-[#C5A059] text-sm font-medium mb-2">
-              Descripción <span className="text-white/40">(Opcional)</span>
+            <Label className="text-[#C5A059] text-sm font-medium mb-2">
+              {editPhoto ? "Imagen" : "Imágenes"}
             </Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={loading}
-              rows={3}
-              className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:ring-2 focus:ring-[#4FB8C4] focus:border-transparent resize-none"
-              placeholder="Descripción de la imagen..."
-            />
+            
+            {previewUrls.length > 0 ? (
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                  {previewUrls.map((url, index) => (
+                    <div key={index} className="relative group aspect-square rounded-xl overflow-hidden">
+                      <Image
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                      {files.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="absolute top-1 right-1 p-1 bg-destructive/80 hover:bg-destructive rounded-full"
+                        >
+                          <X className="h-3 w-3 text-white" />
+                        </button>
+                      )}
+                      {index === 0 && files.length > 1 && (
+                        <div className="absolute bottom-1 left-1 bg-black/60 px-2 py-0.5 rounded text-xs text-white">
+                          +{files.length - 1}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveCurrentImage}
+                  className="text-sm text-red-400 hover:text-red-300"
+                >
+                  Eliminar todas
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#4FB8C4]/50 hover:bg-white/5 transition-all">
+                <div className="flex flex-col items-center justify-center py-4 text-center">
+                  <UploadCloud className="h-10 w-10 text-white/30 mb-2" />
+                  <p className="text-sm text-white/60">
+                    <span className="text-[#4FB8C4]">Sube archivos</span>
+                  </p>
+                  <p className="text-xs text-white/40 mt-1">Múltiples imágenes - PNG, JPG hasta 3MB c/u</p>
+                </div>
+                <input
+                  type="file"
+                  className="sr-only"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileChange}
+                  disabled={loading}
+                />
+              </label>
+            )}
           </div>
 
           <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
@@ -331,7 +310,7 @@ export function PhotoModal({ isOpen, setIsOpen, editPhoto, onSuccess }: PhotoMod
             disabled={loading || !title}
             className="bg-gradient-to-r from-[#4FB8C4] to-[#1E6B7E] hover:opacity-90"
           >
-            {loading ? "Guardando..." : editPhoto ? "Actualizar" : "Subir Imagen"}
+            {loading ? "Guardando..." : editPhoto ? "Actualizar" : files.length > 1 ? `Subir ${files.length} Imágenes` : "Subir Imagen"}
           </Button>
         </DialogFooter>
       </DialogContent>

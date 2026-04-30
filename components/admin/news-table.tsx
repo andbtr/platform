@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { 
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table"
@@ -37,6 +38,7 @@ export function NewsTable({ onOpenModal, refreshKey }: NewsTableProps) {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all")
+  const [newsToDelete, setNewsToDelete] = useState<NewsItem | null>(null)
 
   useEffect(() => {
     fetchNews()
@@ -72,18 +74,41 @@ export function NewsTable({ onOpenModal, refreshKey }: NewsTableProps) {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!supabase) return
-    if (!confirm("¿Estás seguro de que deseas eliminar esta noticia?")) return
+  const confirmDelete = (item: NewsItem) => {
+    setNewsToDelete(item)
+  }
 
+  const handleDelete = async () => {
+    if (!supabase || !newsToDelete) return
+
+    // Eliminar imagen del storage
+    if (newsToDelete.image_url) {
+      const match = newsToDelete.image_url.match(/news\/(.+)$/)
+      const filePath = match ? `news/${match[1]}` : null
+      
+      if (filePath) {
+        const { error: storageError } = await supabase.storage.from('photos').remove([filePath])
+        
+        if (storageError) {
+          alert('Error al eliminar la imagen del storage')
+          return
+        }
+      }
+    }
+
+    // Eliminar registro de la base de datos
     const { error } = await supabase
       .from("news")
       .delete()
-      .eq("id", id)
+      .eq("id", newsToDelete.id)
 
-    if (!error) {
-      setNews(news.filter(n => n.id !== id))
+    if (error) {
+      alert('Error al eliminar la noticia de la base de datos')
+      return
     }
+
+    setNews(news.filter(n => n.id !== newsToDelete.id))
+    setNewsToDelete(null)
   }
 
   const filteredNews = news.filter(item => {
@@ -163,18 +188,18 @@ export function NewsTable({ onOpenModal, refreshKey }: NewsTableProps) {
           <Table>
             <TableHeader>
               <TableRow className="border-white/10 hover:bg-white/5">
-                <TableHead className="w-24">Imagen</TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead className="text-center">Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                <TableHead className="w-20">Imagen</TableHead>
+                <TableHead className="w-auto">Título</TableHead>
+                <TableHead className="w-20">Tipo</TableHead>
+                <TableHead className="w-20 text-center">Estado</TableHead>
+                <TableHead className="w-20 text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredNews.map((item) => (
                 <TableRow key={item.id} className="border-white/10 hover:bg-white/5">
                   <TableCell>
-                    <div className="relative w-16 h-12 rounded-lg overflow-hidden bg-white/10">
+                    <div className="relative w-20 h-14 rounded-lg overflow-hidden bg-white/10">
                       <Image
                         src={item.image_url}
                         alt={item.title}
@@ -184,13 +209,13 @@ export function NewsTable({ onOpenModal, refreshKey }: NewsTableProps) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div>
-                      <p className="font-medium text-white line-clamp-1">{item.title}</p>
-                      <p className="text-sm text-white/50 line-clamp-1">{item.content}</p>
+                    <div className="max-w-[250px]">
+                      <p className="font-medium text-white truncate">{item.title}</p>
+                      <p className="text-sm text-white/50 truncate">{item.content?.slice(0, 80)}...</p>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="border-white/20">
+                    <Badge variant="outline" className="border-white/20 whitespace-nowrap">
                       {item.type}
                     </Badge>
                   </TableCell>
@@ -200,7 +225,7 @@ export function NewsTable({ onOpenModal, refreshKey }: NewsTableProps) {
                         checked={item.active}
                         onCheckedChange={() => handleToggleActive(item)}
                       />
-                      <span className={`text-xs ${item.active ? "text-green-400" : "text-red-400"}`}>
+                      <span className={`text-xs whitespace-nowrap ${item.active ? "text-green-400" : "text-red-400"}`}>
                         {item.active ? "Visible" : "Oculto"}
                       </span>
                     </div>
@@ -217,7 +242,7 @@ export function NewsTable({ onOpenModal, refreshKey }: NewsTableProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => confirmDelete(item)}
                         className="text-red-400 hover:text-red-300"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -230,6 +255,30 @@ export function NewsTable({ onOpenModal, refreshKey }: NewsTableProps) {
           </Table>
         </div>
       )}
+
+      <AlertDialog open={!!newsToDelete} onOpenChange={(open) => !open && setNewsToDelete(null)}>
+        <AlertDialogContent className="glass-card border-gold-glow">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-[family-name:var(--font-cinzel)] text-gold-gradient">
+              ¿Eliminar noticia?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-white/70">
+              ¿Estás seguro de que deseas eliminar esta noticia? Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

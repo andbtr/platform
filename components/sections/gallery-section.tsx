@@ -7,7 +7,6 @@ import { useSupabase } from "@/components/providers/supabase-provider"
 type Photo = {
   image_url: string
   title: string
-  description: string | null
 }
 
 const INITIAL_LOAD = 8
@@ -25,7 +24,7 @@ export function GallerySection() {
     async function fetchPhotos() {
       const { data } = await supabase
         .from('photos')
-        .select('image_url, title, description')
+        .select('image_url, title')
         .eq('active', true)
         .order('created_at', { ascending: false })
       

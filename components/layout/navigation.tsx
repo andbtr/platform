@@ -188,7 +188,7 @@ export function Navigation() {
           </button>
 
           {/* Desktop Navigation */}
-          {pathname !== "/login" && pathname !== "/inscription" && (
+          {pathname === "/" && (
             <nav className="hidden md:flex items-center gap-4">
               <button
                 onClick={() => goToSection("info")}
@@ -298,19 +298,23 @@ export function Navigation() {
                   )}
                   <Link href="/admin">
                     <Button variant="outline" className="border-accent/40 text-foreground">
-                      Admin
+                      Mi Panel
                     </Button>
                   </Link>
-                  <Link href="/admin/gallery">
-                    <Button variant="outline" className="border-accent/40 text-foreground">
-                      Galería
-                    </Button>
-                  </Link>
-                  <Link href="/admin/news">
-                    <Button variant="outline" className="border-accent/40 text-foreground">
-                      Noticias
-                    </Button>
-                  </Link>
+                  {pathname.startsWith("/admin") && (
+                    <>
+                      <Link href="/admin/gallery">
+                        <Button variant="outline" className="border-accent/40 text-foreground">
+                          Galería
+                        </Button>
+                      </Link>
+                      <Link href="/admin/news">
+                        <Button variant="outline" className="border-accent/40 text-foreground">
+                          Noticias
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                   <Button 
                     variant="ghost" 
                     onClick={async () => await signOut()}

@@ -23,7 +23,7 @@ export async function getBlocks() {
 export async function getPhotos() {
   const { data, error } = await supabaseServer
     .from('photos')
-    .select('image_url, title, description')
+    .select('image_url, title')
     .eq('active', true)
     .order('created_at', { ascending: false })
 
