@@ -26,7 +26,6 @@ export async function getPhotos() {
     .select('image_url, title, description')
     .eq('active', true)
     .order('created_at', { ascending: false })
-    .limit(6)
 
   if (error) {
     console.error('Error fetching photos:', error)
