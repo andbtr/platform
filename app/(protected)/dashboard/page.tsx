@@ -61,11 +61,16 @@ export default async function DashboardPage() {
     redirect('/admin')
   }
 
-  const { data: memberRow } = await supabase
+  const { data: memberRow, error: memberError } = await supabase
     .from("members")
     .select("*, blocks(*)")
     .eq("id", user.id)
     .single()
+
+  if (memberError) {
+    console.error("Member fetch error:", memberError)
+  }
+  console.log("memberRow:", memberRow)
 
   let memberDetails = memberRow
 

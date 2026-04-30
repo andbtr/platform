@@ -23,7 +23,7 @@ export function DashboardHeader() {
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2 transition-colors">
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/huajsapata.png-ETs04yCnOGaA9a5tqHdj4RSxflUMNS.jpeg"
+                src="huajsapata_negro.png"
                 alt="Morenada Huajsapata"
                 width={40}
                 height={40}

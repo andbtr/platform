@@ -37,14 +37,14 @@ export function Footer() {
             <h4 className="text-[#4FB8C4] font-semibold mb-4 uppercase tracking-wider text-sm">Próximos Ensayos</h4>
             <div className="space-y-4">
               <div className="flex flex-col items-center gap-1">
-                <span className="text-[10px] text-gold-gradient uppercase tracking-widest font-bold">Llamado a la Tropa</span>
-                <p className="text-sm text-white/70">Síguenos en nuestras redes sociales para estar al tanto de las fechas de ensayo en Lima y Puno.</p>
+                <span className="text-[10px] text-gold-gradient uppercase tracking-widest font-bold">Llamado a la agrupación</span>
+                <p className="text-sm text-white/70">Síguenos en nuestras redes sociales para estar al tanto de las fechas de ensayo.</p>
               </div>
               
               <div className="pt-2">
-                <a href="mailto:info@huajsapata.com" className="flex items-center justify-center gap-2 text-white/70 hover:text-white transition-colors">
+                <a href="mailto:morenadahuajsapata@gmail.com" className="flex items-center justify-center gap-2 text-white/70 hover:text-white transition-colors">
                   <Mail className="w-4 h-4 text-[#C5A059]" />
-                  <span className="text-sm">info@huajsapata.com</span>
+                  <span className="text-sm">morenadahuajsapata@gmail.com</span>
                 </a>
               </div>
             </div>

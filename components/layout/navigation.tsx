@@ -30,14 +30,34 @@ export function Navigation() {
       meta.full_name ||
       meta.name ||
       meta.display_name ||
-      meta.username ||
-      (typeof user.email === "string" ? user.email.split("@")[0] : null)
+      meta.first_name ||
+      null
     return typeof candidate === "string" ? candidate.trim() : null
   })()
 
+  const [userName, setUserName] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!user) return
+    let mounted = true
+    ;(async () => {
+      const { data } = await supabase
+        .from('members')
+        .select('first_name, last_name')
+        .eq('id', user.id)
+        .single()
+      if (mounted && data) {
+        setUserName(`${data.first_name || ''} ${data.last_name || ''}`.trim() || null)
+      }
+    })()
+    return () => { mounted = false }
+  }, [user])
+
+  const displayNameToUse = userName || displayName
+
   const firstName = (() => {
-    if (!displayName) return null
-    const parts = displayName.trim().split(" ")
+    if (!displayNameToUse) return null
+    const parts = displayNameToUse.trim().split(" ")
     return parts[0]
   })()
 
@@ -208,29 +228,26 @@ export function Navigation() {
           {/* Desktop CTA */}
           {pathname !== "/login" && pathname !== "/inscription" && (
             <div className="hidden md:flex items-center gap-3">
-              {user && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative"
-                  onClick={() => router.push('/dashboard')}
-                  aria-label={notificationCount > 0 ? `Tienes ${notificationCount} notificaciones` : "Sin notificaciones nuevas"}
-                >
-                  <Bell className="w-5 h-5" />
-                  {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-[10px] rounded-full flex items-center justify-center text-white">
-                      {notificationCount > 9 ? '9+' : notificationCount}
+              {user && !isAdmin ? (
+                <>
+                  {firstName && (
+                    <span className="hidden lg:inline-flex items-center text-sm text-foreground font-medium">
+                      Hola, {firstName}
                     </span>
                   )}
-                </Button>
-              )}
-
-              {user && !isAdmin ? (
-                <Link href="/dashboard">
-                  <Button className="bg-gradient-to-r from-[#4FB8C4] to-[#1E6B7E] hover:from-[#5CCBD4] hover:to-[#2E7B8E] text-white font-semibold shadow-lg shadow-[#4FB8C4]/20">
-                    Mi Panel
+                  <Link href="/dashboard">
+                    <Button className="bg-gradient-to-r from-[#4FB8C4] to-[#1E6B7E] hover:from-[#5CCBD4] hover:to-[#2E7B8E] text-white font-semibold shadow-lg shadow-[#4FB8C4]/20">
+                      Mi Panel
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="ghost" 
+                    onClick={async () => await signOut()}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  >
+                    Cerrar sesión
                   </Button>
-                </Link>
+                </>
               ) : !user ? (
                 <Link href="/inscription">
                   <Button className={cn(
@@ -242,32 +259,28 @@ export function Navigation() {
                 </Link>
               ) : null}
 
-              {user ? (
+              {user && isAdmin && (
                 <>
-                  {isAdmin && (
-                    <>
-                      <Link href="/admin">
-                        <Button variant="outline" className="border-accent/40 text-foreground">
-                          Admin
-                        </Button>
-                      </Link>
-                      <Link href="/admin/gallery">
-                        <Button variant="outline" className="border-accent/40 text-foreground">
-                          Galería
-                        </Button>
-                      </Link>
-                      <Link href="/admin/news">
-                        <Button variant="outline" className="border-accent/40 text-foreground">
-                          Noticias
-                        </Button>
-                      </Link>
-                    </>
-                  )}
                   {firstName && (
-                    <span className="hidden lg:inline-flex items-center rounded-full bg-primary/15 border border-primary/30 px-3 py-1.5 text-sm text-foreground mx-2">
+                    <span className="hidden lg:inline-flex items-center text-sm text-foreground font-medium">
                       Hola, {firstName}
                     </span>
                   )}
+                  <Link href="/admin">
+                    <Button variant="outline" className="border-accent/40 text-foreground">
+                      Admin
+                    </Button>
+                  </Link>
+                  <Link href="/admin/gallery">
+                    <Button variant="outline" className="border-accent/40 text-foreground">
+                      Galería
+                    </Button>
+                  </Link>
+                  <Link href="/admin/news">
+                    <Button variant="outline" className="border-accent/40 text-foreground">
+                      Noticias
+                    </Button>
+                  </Link>
                   <Button 
                     variant="ghost" 
                     onClick={async () => await signOut()}
@@ -276,17 +289,6 @@ export function Navigation() {
                     Cerrar sesión
                   </Button>
                 </>
-              ) : (
-                <Link href="/login">
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      isPathActive("/login") && "bg-primary/15 border-primary/40 text-foreground"
-                    )}
-                  >
-                    Entrar
-                  </Button>
-                </Link>
               )}
             </div>
           )}
@@ -363,28 +365,10 @@ export function Navigation() {
 
                     <div className="h-px bg-primary/10 my-2" />
 
-                    {user && displayName && (
-                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between">
-                        <div>
-                          <p className="text-[10px] text-primary font-bold uppercase tracking-wider mb-1">Sesión activa</p>
-                          <p className="text-sm text-foreground font-medium truncate">{displayName}</p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="relative h-8 w-8 rounded-full bg-background/50"
-                          onClick={() => {
-                            setIsOpen(false)
-                            router.push('/dashboard')
-                          }}
-                        >
-                          <Bell className="w-4 h-4 text-foreground" />
-                          {notificationCount > 0 && (
-                            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-accent text-[9px] rounded-full flex items-center justify-center text-white font-bold">
-                              {notificationCount > 9 ? '9+' : notificationCount}
-                            </span>
-                          )}
-                        </Button>
+                    {user && displayNameToUse && (
+                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+                        <p className="text-[10px] text-primary font-bold uppercase tracking-wider mb-1">Sesión activa</p>
+                        <p className="text-sm text-foreground font-medium truncate">{displayNameToUse}</p>
                       </div>
                     )}
 
