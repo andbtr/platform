@@ -1,6 +1,6 @@
 "use client"
 
-import { Users, Music, Shield } from "lucide-react"
+import Image from "next/image"
 
 type Block = {
   id: string | number
@@ -8,6 +8,7 @@ type Block = {
   total_price: number
   dances?: string
   members_count?: number
+  image_url?: string
 }
 
 type Props = { blocks: Block[] }
@@ -45,53 +46,39 @@ export function BlocksSection({ blocks }: Props) {
           </div>
         )}
 
-        {/* Blocks Grid */}
+{/* Blocks Grid */}
         {!loading && blocks.length > 0 && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {blocks.map((block) => (
               <div
                 key={block.id}
-                className="group relative overflow-hidden rounded-2xl glass hover:glass-hover transition-all duration-300 border border-[#C5A059]/20 hover:border-[#C5A059]/50 p-8"
+                className="group relative overflow-hidden rounded-3xl transition-all duration-500 border border-[#C5A059]/20 hover:border-[#C5A059]/50"
               >
-                {/* Gradient accent */}
-                <div className="absolute inset-0 bg-linear-to-br from-[#4FB8C4]/5 to-[#C5A059]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                {/* Background Image */}
+                {block.image_url ? (
+                  <div className="absolute inset-0">
+                    <Image
+                      src={block.image_url}
+                      alt={block.name}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#050A18] via-[#050A18]/30 to-[#050A18]/10" />
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#0F2167] to-[#050A18]" />
+                )}
+
+                {/* Decorative circle */}
+                <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-[#C5A059]/10 group-hover:bg-[#C5A059]/20 transition-colors" />
+                <div className="absolute -bottom-4 -left-4 w-24 h-24 rounded-full bg-[#4FB8C4]/10 group-hover:bg-[#4FB8C4]/20 transition-colors" />
 
                 {/* Content */}
-                <div className="relative z-10">
+                <div className="relative z-10 p-8 min-h-[280px] flex flex-col justify-end items-center text-center">
                   {/* Block Name */}
-                  <h3 className="font-[--font-cinzel] text-2xl md:text-3xl font-bold text-white mb-4 group-hover:text-[#C5A059] transition-colors">
+                  <h3 className="font-[family-name:var(--font-cinzel)] text-3xl md:text-4xl font-bold text-white group-hover:scale-110 transition-transform duration-300">
                     {block.name}
                   </h3>
-
-                  {/* Stats */}
-                  <div className="space-y-4 mb-6">
-                    <div className="flex items-center gap-3 text-white/80">
-                      <div className="w-10 h-10 rounded-lg bg-[#4FB8C4]/20 flex items-center justify-center">
-                        <Music className="w-5 h-5 text-[#4FB8C4]" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-white/60">Tradición y Danza</p>
-                        <p className="font-semibold text-lg">Bloque Oficial</p>
-                      </div>
-                    </div>
-
-                    {block.members_count && (
-                      <div className="flex items-center gap-3 text-white/80">
-                        <div className="w-10 h-10 rounded-lg bg-[#4FB8C4]/20 flex items-center justify-center">
-                          <Users className="w-5 h-5 text-[#4FB8C4]" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-white/60">Integrantes</p>
-                          <p className="font-semibold">{block.members_count}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* CTA Button */}
-                  <button className="w-full mt-6 px-6 py-3 rounded-xl bg-linear-to-r from-[#4FB8C4] to-[#0F2167] text-white font-semibold hover:shadow-lg hover:shadow-[#4FB8C4]/25 transition-all duration-300 group/btn">
-                    Ver Detalles
-                  </button>
                 </div>
               </div>
             ))}

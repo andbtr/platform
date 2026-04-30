@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { Sparkles } from "lucide-react"
 
 export function HeroSection() {
   const router = useRouter()
@@ -46,7 +46,7 @@ export function HeroSection() {
   }
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pb-4">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -113,21 +113,17 @@ export function HeroSection() {
         {/* CTA Button */}
         <button
           onClick={navigateToRegistration}
-          className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-gradient-to-r from-[#E91E8C] to-[#C5156F] rounded-full btn-glow transition-all duration-300 hover:scale-105"
+          className="group relative inline-flex items-center justify-center gap-3 px-12 py-6 text-xl font-bold text-white bg-gradient-to-r from-[#E91E8C] via-[#FF4081] to-[#E91E8C] bg-[length:200%_100%] rounded-full shadow-[0_0_40px_rgba(233,30,140,0.4)] hover:shadow-[0_0_60px_rgba(233,30,140,0.6)] transition-all duration-300 hover:scale-105 animate-gradient"
         >
+          <Sparkles className="w-6 h-6 animate-pulse" />
           <span className="relative z-10">Vive la magia de la Candelaria</span>
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#E91E8C] to-[#C5156F] blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#E91E8C] via-[#FF4081] to-[#E91E8C] bg-[length:200%_100%] blur-xl opacity-60 group-hover:opacity-80 transition-opacity animate-gradient" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 3s ease infinite' }} />
         </button>
 
         {/* Secondary Info */}
-        <p className="mt-6 text-[#4FB8C4] text-sm drop-shadow-md">
+        <p className="mt-4 text-[#4FB8C4] text-sm drop-shadow-md">
           Únete a la familia de Morenada Huajsapata
         </p>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <ChevronDown className="w-8 h-8 text-[#C5A059]" />
-        </div>
       </div>
     </section>
   )
