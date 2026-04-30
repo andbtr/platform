@@ -40,9 +40,6 @@ export function NewsModal({ newsItem, isOpen, onClose }: NewsModalProps) {
       <DialogContent className="sm:max-w-[90vw] h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="sr-only">{newsItem.title}</DialogTitle>
-          <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
-            <X className="w-6 h-6" />
-          </button>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto">
           {newsItem.image_url && (

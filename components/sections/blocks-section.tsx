@@ -1,6 +1,8 @@
 "use client"
 
 import Image from "next/image"
+import { useEffect, useState } from "react"
+import { useSupabase } from "@/components/providers/supabase-provider"
 
 type Block = {
   id: string | number
@@ -11,11 +13,23 @@ type Block = {
   image_url?: string
 }
 
-type Props = { blocks: Block[] }
+export function BlocksSection() {
+  const supabase = useSupabase()
+  const [blocks, setBlocks] = useState<Block[]>([])
+  const [loading, setLoading] = useState(true)
 
-export function BlocksSection({ blocks }: Props) {
-  const loading = false
-  const error: string | null = null
+  useEffect(() => {
+    async function fetchBlocks() {
+      const { data } = await supabase
+        .from('blocks')
+        .select('id, name, total_price, image_url')
+        .eq('is_active', true)
+      
+      if (data) setBlocks(data)
+      setLoading(false)
+    }
+    fetchBlocks()
+  }, [supabase])
 
   return (
     <section id="bloques" className="relative py-20 md:py-32 overflow-hidden">

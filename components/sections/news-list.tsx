@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Image from "next/image"
-import { ArrowRight, Calendar } from "lucide-react"
+import { ArrowRight, Calendar, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { NewsModal } from "./news-modal"
-import { useSupabase } from "@/components/providers/supabase-provider"
 
 type News = {
   id: number
@@ -20,41 +19,12 @@ type News = {
   created_at: string
 }
 
-const INITIAL_LOAD = 8
+type NewsListProps = {
+  news: News[]
+}
 
-export function NewsSection() {
-  const supabase = useSupabase()
-  const [news, setNews] = useState<News[]>([])
-  const [loading, setLoading] = useState(true)
+export function NewsList({ news = [] }: NewsListProps) {
   const [selectedNews, setSelectedNews] = useState<News | null>(null)
-
-  useEffect(() => {
-    async function fetchNews() {
-      const { data } = await supabase
-        .from('news')
-        .select('id, title, content, image_url, link, priority, type, created_at')
-        .eq('active', true)
-        .order('priority', { ascending: false })
-        .order('created_at', { ascending: false })
-      
-      if (data) setNews(data)
-      setLoading(false)
-    }
-    fetchNews()
-  }, [supabase])
-
-  const visibleNews = news.slice(0, INITIAL_LOAD)
-  const hasMore = news.length > INITIAL_LOAD
-
-  if (loading) {
-    return (
-      <section id="noticias" className="relative py-20 md:py-32 overflow-hidden bg-[#050A18]/50">
-        <div className="container mx-auto px-4 text-center text-white/60">
-          Cargando noticias...
-        </div>
-      </section>
-    )
-  }
 
   const formatDate = (dateString: string) => {
     try {
@@ -67,31 +37,34 @@ export function NewsSection() {
 
   return (
     <>
-      <section id="noticias" className="relative py-20 md:py-32 overflow-hidden bg-[#050A18]/50">
+      <section className="relative py-20 md:py-32 overflow-hidden bg-[#050A18]/50">
         <div className="absolute inset-0 z-0 opacity-10">
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#C5A059_1px,transparent_1px)] [background-size:40px_40px]" />
         </div>
 
         <div className="relative z-10 container mx-auto px-4">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+          <div className="mb-12">
+            <Link 
+              href="/" 
+              className="inline-flex items-center text-sm font-bold text-[#C5A059] hover:text-[#4FB8C4] transition-colors mb-8"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver al inicio
+            </Link>
             <div className="max-w-2xl text-left">
               <p className="text-[#4FB8C4] text-sm uppercase tracking-[0.3em] mb-3">Actualidad Huajsapata</p>
-              <h2 className="font-[family-name:var(--font-cinzel)] text-3xl md:text-5xl font-bold">
-                <span className="text-gold-gradient">Noticias Recientes</span>
-              </h2>
+              <h1 className="font-[family-name:var(--font-cinzel)] text-3xl md:text-5xl font-bold">
+                <span className="text-gold-gradient">Todas las Noticias</span>
+              </h1>
+              <p className="text-white/60 mt-4">{news.length} noticias</p>
             </div>
-            <Link href="/noticias" className="inline-flex items-center text-sm font-bold text-[#C5A059] hover:text-[#4FB8C4] transition-colors border-b border-[#C5A059]/30 pb-1 uppercase tracking-widest">
-              Ver todas las noticias
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {visibleNews.map((item) => (
+            {news.map((item) => (
               <article 
                 key={item.id}
-                className="group bg-card/30 backdrop-blur-sm rounded-3xl overflow-hidden border border-white/5 hover:border-[#C5A059]/30 transition-all duration-500 shadow-2xl flex flex-col h-full cursor-pointer"
-                onClick={() => setSelectedNews(item)}
+                className="group bg-card/30 backdrop-blur-sm rounded-3xl overflow-hidden border border-white/5 hover:border-[#C5A059]/30 transition-all duration-500 shadow-2xl flex flex-col h-full"
               >
                 <div className="relative h-56 overflow-hidden">
                   <Image
@@ -136,17 +109,6 @@ export function NewsSection() {
               </article>
             ))}
           </div>
-
-          {hasMore && (
-            <div className="mt-12 text-center">
-              <Link
-                href="/noticias"
-                className="px-8 py-3 rounded-full border border-[#C5A059] text-[#C5A059] text-sm font-bold uppercase tracking-widest hover:bg-[#C5A059]/10 transition-all duration-300"
-              >
-                Ver todas las noticias ({news.length})
-              </Link>
-            </div>
-          )}
         </div>
       </section>
       <NewsModal newsItem={selectedNews} isOpen={!!selectedNews} onClose={() => setSelectedNews(null)} />

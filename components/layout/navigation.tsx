@@ -108,6 +108,29 @@ export function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  useEffect(() => {
+    if (pathname !== "/") return
+    
+    const sections = ["info", "noticias", "filiales", "galeria", "bloques"]
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.find(e => e.isIntersecting)
+        if (visible) {
+          setCurrentHash(`#${visible.target.id}`)
+        }
+      },
+      { threshold: 0.3 }
+    )
+
+    sections.forEach(id => {
+      const el = document.getElementById(id)
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
+  }, [pathname])
+
   const goToSection = (sectionId: string) => {
     setIsOpen(false)
     const section = document.getElementById(sectionId)
