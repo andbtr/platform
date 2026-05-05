@@ -61,3 +61,6 @@ coverage/
 /.history/
 
 .env
+
+## Agent Teams Lite
+.atl/

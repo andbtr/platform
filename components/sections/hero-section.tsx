@@ -113,16 +113,15 @@ export function HeroSection() {
         {/* CTA Button */}
         <button
           onClick={navigateToRegistration}
-          className="group relative inline-flex items-center justify-center gap-3 px-12 py-6 text-xl font-bold text-white bg-gradient-to-r from-[#E91E8C] via-[#FF4081] to-[#E91E8C] bg-[length:200%_100%] rounded-full shadow-[0_0_40px_rgba(233,30,140,0.4)] hover:shadow-[0_0_60px_rgba(233,30,140,0.6)] transition-all duration-300 hover:scale-105 animate-gradient"
+          className="btn-hero-primary btn-hero-glow relative inline-flex items-center justify-center gap-3 px-12 py-6 text-xl font-bold text-white bg-gradient-to-r from-[#E91E8C] via-[#FF4081] to-[#E91E8C] bg-[length:200%_100%] rounded-full transition-all duration-300 hover:scale-105 animate-gradient focus-visible:ring-2 focus-visible:ring-[#C5A059] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050A18]"
         >
           <Sparkles className="w-6 h-6 animate-pulse" />
           <span className="relative z-10">Vive la magia de la Candelaria</span>
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#E91E8C] via-[#FF4081] to-[#E91E8C] bg-[length:200%_100%] blur-xl opacity-60 group-hover:opacity-80 transition-opacity animate-gradient" style={{ backgroundSize: '200% 200%', animation: 'gradient-shift 3s ease infinite' }} />
         </button>
 
         {/* Secondary Info */}
         <p className="mt-4 text-[#4FB8C4] text-sm drop-shadow-md">
-          Únete a la familia de Morenada Huajsapata
+          Únete a más de 200 bailarines ya inscritos
         </p>
       </div>
     </section>

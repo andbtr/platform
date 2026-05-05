@@ -242,3 +242,100 @@
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, #6DD3DF, #1E6B7E);
 }
+
+/* ===== Hero CTA Enhancement ===== */
+
+/* Keyframes and animations — all gated on no-preference for reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes ring-pulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    100% {
+      transform: scale(1.6);
+      opacity: 0;
+    }
+  }
+
+  @keyframes breathe {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.025);
+    }
+  }
+
+  @keyframes border-glow {
+    0%, 100% {
+      box-shadow:
+        0 0 0 2px rgba(197, 160, 89, 0.6),
+        0 0 15px rgba(197, 160, 89, 0.3),
+        0 0 30px rgba(79, 184, 196, 0.2);
+    }
+    33% {
+      box-shadow:
+        0 0 0 2px rgba(79, 184, 196, 0.6),
+        0 0 15px rgba(79, 184, 196, 0.3),
+        0 0 30px rgba(233, 30, 140, 0.2);
+    }
+    66% {
+      box-shadow:
+        0 0 0 2px rgba(233, 30, 140, 0.6),
+        0 0 15px rgba(233, 30, 140, 0.3),
+        0 0 30px rgba(197, 160, 89, 0.2);
+    }
+  }
+
+  /* Breathing on the button */
+  .btn-hero-primary {
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  /* Pause breathing on hover so hover:scale-105 works */
+  .btn-hero-primary:hover {
+    animation-play-state: paused;
+  }
+
+  /* Ring pulse behind the button via ::before / ::after */
+  .btn-hero-primary::before,
+  .btn-hero-primary::after {
+    content: '';
+    position: absolute;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgba(197, 160, 89, 0.6), transparent 70%);
+    animation: ring-pulse 3s ease-out infinite;
+    will-change: transform;
+    z-index: -1;
+  }
+
+  .btn-hero-primary::before {
+    inset: -16px;
+    animation-delay: 0s;
+  }
+
+  .btn-hero-primary::after {
+    inset: -32px;
+    animation-delay: 1.5s;
+  }
+
+  /* Animated glow border directly on the button */
+  .btn-hero-glow {
+    animation: border-glow 5s ease-in-out infinite;
+  }
+}
+
+/* Hide rings on viewports < 360px (applies regardless of motion preference) */
+@media (max-width: 359px) {
+  .btn-hero-primary::before,
+  .btn-hero-primary::after {
+    display: none;
+  }
+}
+
+/* Base styles — applied regardless of motion preference */
+.btn-hero-primary {
+  position: relative;
+}
